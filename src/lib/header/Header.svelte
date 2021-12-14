@@ -193,7 +193,7 @@
 				Email gateway
 				{/if}
 			</ModalItem>  -->
-			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}plus.svg" onClick={doTransaction}>Test Auth</ModalItem> -->
+			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}plus.svg" onClick={doTransaction}>Post Transaction</ModalItem> -->
 			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}plus.svg" onClick={doUpgradeQuery}>Test Upgrade</ModalItem> -->
 			<ModalItem imageUrl="{$page.path == "/" ? "" : "../"}logout.svg" onClick={logout}>Log out</ModalItem>
 		</div>
