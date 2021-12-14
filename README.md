@@ -26,7 +26,7 @@ Mint some tokens int your wallets so they have the funds to post transactions.
 `http://localhost:1984/mint/{walletAddress}/{amountOfWinstons}
 `
 
-Edit [arweaveConfig.ts](https://github.com/MyMailProtocol/mail-app/src/arweaveConfig.ts) and uncomment the local config (commenting out the live config at the same time)
+Edit [arweaveConfig.ts](https://github.com/MyMailProtocol/mail-app/blob/main/src/lib/arweaveConfig.ts#L7-L11) and uncomment the local config (commenting out the live config at the same time)
 ```code
 // const config = {
 //     host: "localhost",
