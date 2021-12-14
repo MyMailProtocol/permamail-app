@@ -223,9 +223,9 @@
 		--color-bg--surface-glint: rgba(var(--rgb-gray), 0.1);
 	}
 
-	header a {
+	/* header a {
 		color: var(--color-text);
-	}
+	} */
 
 	.container {
 		position: relative;
@@ -376,7 +376,7 @@
 			brightness(103%) contrast(85%);
 	}
 
-	.search {
+	/* .search {
 		position: relative;
 		z-index: 0;
 		padding-top: 0.4em;
@@ -404,7 +404,7 @@
 		background-image: url("/src/lib/header/search-icon.svg");
 		filter: invert(99%) sepia(70%) saturate(310%) hue-rotate(294deg)
 			brightness(103%) contrast(85%);
-	}
+	} */
 
 	.corner {
 		width: 20%;
@@ -416,10 +416,10 @@
 		top: 0;
 	}
 
-	.corner a {
+	/* .corner a {
 		align-items: center;
 		justify-content: left;
 		width: 100%;
-	}
+	} */
 
 </style>
