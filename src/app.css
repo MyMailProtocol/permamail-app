@@ -1,0 +1,145 @@
+@import '@fontsource/fira-mono';
+
+:root {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	--font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+	--pure-white: #ffffff;
+	--primary-color: #b9c6d2;
+	--secondary-color: #d0dde9;
+	--tertiary-color: #edf0f8;
+	--accent-color: #ff3e00;
+	--heading-color: rgb(236, 233, 230);
+	--text-color: #444444;
+	--background-without-opacity: rgba(255, 255, 255, 0.7);
+	--column-width: 42rem;
+	--column-margin-top: 4rem;
+
+	/* New Styles */
+	--base-space: 1.25em;
+    --half-space: calc(var(--base-space) / 2);
+
+
+	--rgb-gray: 116, 116, 128;
+	--rgb-dark-gray: 90, 90, 100;
+	--rgb-light-gray: 39, 50, 62;
+	--rgb-almost-white: 236, 233, 230;
+	--rgb-almost-black: 27, 39, 51;
+	--rgb-blue: 80, 162, 255;
+	--rgb-teal: 157, 255, 236;
+	--rgb-purple: 134, 126, 255;
+	--rgb-background: rgb(var(--rgb-almost-black));
+
+	--color-text: rgb(var(--rgb-almost-white));
+	--color-txt--reversed: var(--rgb-background);
+	--color-text--subtle: rgba(var(--rgb-almost-white), 0.66);
+	--color-bg--secondary-glint: rgba(var(--rgb-blue), 0.05);
+	--color-bg--surface: rgba(var(--rgb-gray), 0.2);
+	--color-bg--surface-glint-opaque: rgb(var(--rgb-light-gray));
+	--color-bg--sheet: var(--color-bg--surface-glint-opaque);
+	--color-border--popup: rgba(var(--rgb-almost-black), 0.15);
+	--color-primary: rgb(var(--rgb-teal));
+	--color-secondary: rgb(var(--rgb-blue));
+	--color-tertiary: rgb(var(--rgb-purple));
+	--color-almost-black: rgb(var(--rgb-almost-black));
+	--color-border--solid: rgb(var(var(--rgb-almost-white)));
+	--color-border: rgba(var(--rgb-almost-white), 0.15);
+	--color-modal-item-hovered: rgba(255, 255, 255, 0.32);
+	--color-bg--main: rgb(var(--rgb-background));
+	--color-bg--main-thin: rgba(var(--rgb-almost-black), 0.5);
+	--color-bg--main-thick: rgba(var(--rgb-almost-black), 0.95);
+
+	font-size: var(--font-size-base);
+	--font-size-base: 11px;
+	--font-size-xx-small: 1.1rem;
+    --font-size-x-small: 1.2rem;
+    --font-size-small: 1.4rem;
+    --font-size-medium: 1.6rem;
+    --font-size-large: 1.8rem;
+    --font-size-x-large: 2.4rem;
+    --font-size-xx-large: 3.4rem;
+}
+
+body {
+	min-height: 100vh;
+	margin: 0;
+	background-color: var(--rgb-background);
+}
+
+body::before {
+	content: '';
+	width: 80vw;
+	height: 100vh;
+	position: absolute;
+	top: 0;
+	left: 10vw;
+	z-index: -1;
+	/* background: radial-gradient(
+		50% 50% at 50% 50%,
+		var(--pure-white) 0%,
+		rgba(255, 255, 255, 0) 100%
+	); */
+	opacity: 0.05;
+}
+
+#svelte {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+h1,
+h2,
+p {
+	font-weight: 400;
+	color: var(--heading-color);
+}
+
+p {
+	line-height: 1.5;
+}
+
+a {
+	color: var(--color-secondary);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+h1 {
+	font-size: 2rem;
+	text-align: center;
+}
+
+h2 {
+	font-size: 1rem;
+}
+
+pre {
+	font-size: 1.3rem;
+	font-family: var(--font-mono);
+	background-color: rgba(255, 255, 255, 0.45);
+	border-radius: 3px;
+	box-shadow: 2px 2px 6px rgb(255 255 255 / 25%);
+	padding: 0.5em;
+	overflow-x: auto;
+	color: var(--text-color);
+}
+
+input,
+button {
+	font-size: inherit;
+	font-family: inherit;
+}
+
+button:focus:not(:focus-visible) {
+	outline: none;
+}
+
+@media (min-width: 720px) {
+	h1 {
+		font-size: 2.4rem;
+	}
+}
+

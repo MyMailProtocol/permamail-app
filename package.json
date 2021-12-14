@@ -1,0 +1,31 @@
+{
+  "name": "~MyMail~",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "svelte-kit dev",
+    "build": "svelte-kit build",
+    "preview": "svelte-kit preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^1.0.0-next.16",
+    "@sveltejs/kit": "next",
+    "@types/cookie": "^0.4.0",
+    "svelte": "^3.34.0",
+    "svelte-check": "^2.0.0",
+    "svelte-preprocess": "^4.0.0",
+    "tslib": "^2.0.0",
+    "typescript": "^4.0.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@fontsource/fira-mono": "^4.2.2",
+    "@lukeed/uuid": "^2.0.0",
+    "arweave": "^1.10.11",
+    "base64-js": "^1.5.1",
+    "cookie": "^0.4.1",
+    "svelte-local-storage-store": "^0.2.4",
+    "sveltejs-adapter-ipfs": "^0.1.6"
+  }
+}
