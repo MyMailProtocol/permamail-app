@@ -238,7 +238,16 @@
 			});
 			_inboxThreads = threads;
 			$keyStore.inboxThreads = _inboxThreads;
-			if (_inboxThreads[0] && _inboxThreads[0].isSeen)
+			let isInboxZero = true;
+
+			// Only set the mostRecentTimestamp if all the messages are read
+			for (let i = 0; i < _inboxThreads.length; i++) {
+				if (_inboxThreads[i].isSeen == false) {
+					isInboxZero = false;
+					break;
+				}
+			}
+			if(isInboxZero)
 				localStorage.mostRecentTimestamp = mostRecentTimestamp.toString();
 		});
 	}
@@ -748,7 +757,7 @@ Thanks for checking out our project 💌
 		left: -0.7em;
 		width: 0.5em;
 		height: 0.5em;
-		background: url("unread.svg") center/100% no-repeat;
+		background: url("/static/unread.svg") center/100% no-repeat;
 		/* background-image: url("/src/lib/header/back-icon.svg"); */
 	}
 
@@ -802,7 +811,7 @@ Thanks for checking out our project 💌
 		left: 7em;
 		z-index: 10;
 		background: center / 1em no-repeat;
-		background-image: url("email.svg");
+		background-image: url("/static/email.svg");
 		/* filter: invert(39%) sepia(91%) saturate(809%) hue-rotate(190deg) brightness(101%) contrast(105%); */
 		filter: invert(99%) sepia(70%) saturate(310%) hue-rotate(294deg)
 			brightness(65%) contrast(85%);
@@ -818,7 +827,7 @@ Thanks for checking out our project 💌
 		left: 90px;
 		z-index: 10;
 		background: center / 1em no-repeat;
-		background-image: url("identity2.svg");
+		background-image: url("/static/identity2.svg");
 		filter: invert(46%) sepia(49%) saturate(835%) hue-rotate(204deg)
 			brightness(100%) contrast(114%);
 		/* filter: invert(99%) sepia(70%) saturate(310%) hue-rotate(294deg)
