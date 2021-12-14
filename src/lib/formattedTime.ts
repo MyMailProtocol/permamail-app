@@ -31,9 +31,15 @@ export function getFormattedTime(timestamp : number) : string {
     if (d1 === d2) {
         let hours = date.getHours();
         if (hours > 12) {
-            return `${hours-12}:${date.getMinutes()}pm`;
+            return `${hours-12}:${date.getMinutes().toLocaleString('en-US', {
+                minimumIntegerDigits: 2,
+                useGrouping: false
+              })}pm`;
         } else {
-            return `${hours}:${date.getMinutes()}am`;
+            return `${hours}:${date.getMinutes().toLocaleString('en-US', {
+                minimumIntegerDigits: 2,
+                useGrouping: false
+              })}am`;
         }
     } else {
         return `${monthsShort[date.getMonth()]} ${date.getDate()}`;
