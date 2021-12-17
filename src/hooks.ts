@@ -1,3 +1,6 @@
+// Copyright (C) 2021, MyMail Labs Inc.  Proprietary and Confidential.
+// All rights reserved.  Unauthorized copying or use of this file, in whole or in part, using any medium is strictly prohibited.
+
 import cookie from 'cookie';
 import { v4 as uuid } from '@lukeed/uuid';
 import type { Handle } from '@sveltejs/kit';
