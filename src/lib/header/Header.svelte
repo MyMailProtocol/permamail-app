@@ -43,6 +43,10 @@
 		}
 	}
 
+	function viewCode() {
+		window.open("https://github.com/MyMailProtocol/mail-app", "_blank", "noopener")
+	}
+
 	onMount(async () => {
 		console.log("getting latest version");
 		let latestVersion = await getLatestVersionTxid(arweave);
@@ -195,6 +199,7 @@
 			</ModalItem>  -->
 			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}plus.svg" onClick={doTransaction}>Post Transaction</ModalItem> -->
 			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}plus.svg" onClick={doUpgradeQuery}>Test Upgrade</ModalItem> -->
+			<ModalItem imageUrl="{$page.path == "/" ? "" : "../"}github.svg" onClick={viewCode}>View Code...</ModalItem>
 			<ModalItem imageUrl="{$page.path == "/" ? "" : "../"}logout.svg" onClick={logout}>Log out</ModalItem>
 		</div>
 	</Modal>
