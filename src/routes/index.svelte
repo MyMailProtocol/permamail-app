@@ -372,7 +372,7 @@ The app you're using now can never be removed, taken down, it's deployed forever
 </br></br>
 It's very early and we have big plans to develop this project to have full email funciontality and alongside encrypted onchain messages.
 </br></br>
-While we can't change this version of the app we can publish new version with new features⚡️. If you like the new features you can choose to use that version instead.
+While we can't change this version of the app we can publish new versions with new features⚡️. If you like the new features you can choose to use that version instead.
 This is the power of apps on the permaweb🐘, you are in control💪.
 </br></br>
 If you like what you see and are curious to learn more, <u>reply to this message</u> and let us know how you found us. We'll send you links to our community where you can learn more about our roadmap and share your on ideas for features you'd like to see.
