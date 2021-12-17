@@ -2,24 +2,24 @@
 import * as B64js from 'base64-js';
 
 export interface InboxItem {
-    id: number;
-    txid: string;
-    toName: string;
-    toAddress: string;
-    fromName: string;
-    fromAddress: string;
-    body: string;
-    date: string;
-    subject: string;
-    threadId: string;
-    fee: number;
-    amount: number;
-    isFlagged: boolean;
-    isRecent: boolean;
-    isSeen: boolean;
-    contentType: string;
-    appVersion: string;
-    timestamp: number;
+  id: number;
+  txid: string;
+  toName: string;
+  toAddress: string;
+  fromName: string;
+  fromAddress: string;
+  body: string;
+  date: string;
+  subject: string;
+  threadId: string;
+  fee: number;
+  amount: number;
+  isFlagged: boolean;
+  isRecent: boolean;
+  isSeen: boolean;
+  contentType: string;
+  appVersion: string;
+  timestamp: number;
 }
 
 function b64UrlEncode(b64UrlString: string): string {
@@ -288,7 +288,7 @@ export async function getLatestVersionTxid(arweave): Promise<string> {
   const address = await arweave.wallets.ownerToAddress(owner);
   const queryObject = {
     query:
-            `{
+      `{
             transactions(owners:["${address}"],
                 tags: [
                     {
@@ -321,7 +321,7 @@ export async function getLatestVersionTxid(arweave): Promise<string> {
   return newVersionTxid;
 }
 
-export async function submitWeavemail(arweave, toAddress, subject, body, amount:number, wallet) {
+export async function submitWeavemail(arweave, toAddress, subject, body, amount: number, wallet) {
   let tokens = '0';
   if (amount > 0) {
     tokens = arweave.ar.arToWinston(amount.toString());
