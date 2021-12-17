@@ -1,8 +1,8 @@
 const config = {
-    host: "arweave.net",
-    port: 443,
-    protocol: "https",
-}
+  host: "arweave.net",
+  port: 443,
+  protocol: "https",
+};
 
 // const config = {
 //     host: "localhost",

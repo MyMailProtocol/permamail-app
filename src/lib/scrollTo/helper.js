@@ -1,12 +1,12 @@
 let supportsPassive = false
 try {
   let opts = Object.defineProperty({}, 'passive', {
-    get: function() {
+    get: function () {
       supportsPassive = true
     },
   })
   window.addEventListener('test', null, opts)
-} catch (e) {}
+} catch (e) { }
 
 export default {
   $(selector) {
@@ -19,8 +19,8 @@ export default {
     // @ts-ignore
     return Object.assign(...args);
   },
-	addListeners(element, events, handler, opts = { passive: false }) {
-		 if (!(events instanceof Array)) {
+  addListeners(element, events, handler, opts = { passive: false }) {
+    if (!(events instanceof Array)) {
       events = [events]
     }
     for (let i = 0; i < events.length; i++) {
@@ -30,16 +30,16 @@ export default {
         supportsPassive ? opts : false
       )
     }
-	},
-	removeListeners(element, events, handler) {
-		if (!(events instanceof Array)) {
+  },
+  removeListeners(element, events, handler) {
+    if (!(events instanceof Array)) {
       events = [events]
     }
     for (let i = 0; i < events.length; i++) {
       element.removeEventListener(events[i], handler)
     }
-	},
-	cumulativeOffset(element) {
+  },
+  cumulativeOffset(element) {
     let top = 0;
     let left = 0;
 
@@ -65,9 +65,9 @@ export default {
       return inSetter
         ? (document.documentElement.scrollTop = document.body.scrollTop = value)
         : window.pageYOffset ||
-            document.documentElement.scrollTop ||
-            document.body.scrollTop ||
-            0;
+        document.documentElement.scrollTop ||
+        document.body.scrollTop ||
+        0;
     }
   },
   scrollLeft(element, value) {
@@ -78,9 +78,9 @@ export default {
       return inSetter
         ? (document.documentElement.scrollLeft = document.body.scrollLeft = value)
         : window.pageXOffset ||
-            document.documentElement.scrollLeft ||
-            document.body.scrollLeft ||
-            0;
+        document.documentElement.scrollLeft ||
+        document.body.scrollLeft ||
+        0;
     }
   }
 };
