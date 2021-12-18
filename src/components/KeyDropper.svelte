@@ -1,6 +1,7 @@
 <script lang="ts">
   import { keyStore } from "$lib/keyStore";
   import { createEventDispatcher } from "svelte";
+  import { ArweaveWebWallet } from 'arweave-wallet-connector'
 
   const dispatch = createEventDispatcher();
   const onLoggedIn = () => {
@@ -36,9 +37,6 @@
   </div>
   <div class="or-block">or login with a wallet</div>
   <button on:click={onARConnectLogin} class="walletButton"> ArConnect </button>
-  <button on:click={onARConnectLogin} class="walletButton">
-    ArConnect
-  </button>
   <button on:click={onARConnectLogin} class="walletButton">
     Arweave.app
   </button>
