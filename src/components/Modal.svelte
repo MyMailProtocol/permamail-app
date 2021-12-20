@@ -1,86 +1,86 @@
 <script lang="ts">
-    export let isOpen:boolean = false;
+  export let isOpen: boolean = false;
 
-    function closePopup() {
-        isOpen = false;
-    }
+  function closePopup(): void {
+    isOpen = false;
+  }
 </script>
 
 <style>
-    div.modal {
-        position: absolute;
-        top: -1em;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        opacity: 1;
-        z-index: 30;
-    }
-    div.modal:not(:focus-within) {
-        transition: opacity 0.1ms;
-        opacity: 0.99;
-    }
-    div.backdrop {
-        background-color: rgba(0, 0, 0, 0.44);
-        position: fixed;
-        width: 100%;
-        height: 100%;
-    }
-    div.content-wrapper {
-        z-index: 10;
-        max-width: 70vw;
-        overflow: hidden;
-        padding: 1rem;
-        position: absolute;
-        top: 5rem;
-        right: 2rem;
+  div.modal {
+    position: absolute;
+    top: -1em;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    z-index: 30;
+  }
+  div.modal:not(:focus-within) {
+    transition: opacity 0.1ms;
+    opacity: 0.99;
+  }
+  div.backdrop {
+    background-color: rgba(0, 0, 0, 0.44);
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+  div.content-wrapper {
+    z-index: 10;
+    max-width: 70vw;
+    overflow: hidden;
+    padding: 1rem;
+    position: absolute;
+    top: 5rem;
+    right: 2rem;
 
-        display: flex;
-        flex-direction: column;
-        list-style-type: none;
-        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-tertiary) 100%);
-        color: var(--color-txt--reversed);
-        padding: 1.25em;
-        border-radius: 1.5em;
-        max-height: 66vh;
-        width: 30rem;
-        overflow-y: auto;
-        font-size: var(--font-size-small);
-        text-align: left;
-        z-index: 10;
-        opacity: 0.99;
-        -webkit-overflow-scrolling: touch;
-    }
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-tertiary) 100%);
+    color: var(--color-txt--reversed);
+    padding: 1.25em;
+    border-radius: 1.5em;
+    max-height: 66vh;
+    width: 30rem;
+    overflow-y: auto;
+    font-size: var(--font-size-small);
+    text-align: left;
+    z-index: 10;
+    opacity: 0.99;
+    -webkit-overflow-scrolling: touch;
+  }
 
-    .header {
-        color: var(--color-primary);
-    }
+  .header {
+    color: var(--color-primary);
+  }
 
-    div.content {
-        max-height: 50vh;
-        overflow: auto;
-    }
+  div.content {
+    max-height: 50vh;
+    overflow: auto;
+  }
 </style>
 
 {#if isOpen}
 <div class="modal" tabindex="0">
-    <div class="backdrop" on:click={closePopup} />
-    <div class="content-wrapper">
-        <div class="header">
-            <slot name="header">
-                <!-- fallback -->
-                ADMIN@PIXELSAMURAI.COM
-            </slot>
-        </div>
-        
-        <div class="content">
-            <slot name="content">
-                content
-            </slot>
-        </div>
+  <div class="backdrop" on:click={closePopup} />
+  <div class="content-wrapper">
+    <div class="header">
+      <slot name="header">
+        <!-- fallback -->
+        ADMIN@PIXELSAMURAI.COM
+      </slot>
     </div>
+
+    <div class="content">
+      <slot name="content">
+        content
+      </slot>
+    </div>
+  </div>
 </div>
 {/if}

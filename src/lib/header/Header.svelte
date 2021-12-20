@@ -37,7 +37,7 @@
 		isOpenAvatarPopup = false;
 
 		await window.arweaveWallet.disconnect();
-		
+
 		if ($page.path != "/") {
 			backToInbox();
 		}
@@ -126,7 +126,7 @@
 				"accept": "*/*",
 			}
 		});
-		
+
 		let data = await result.text();
 		console.log(data);
 		let pk = await getPrivateKey(wallet);
@@ -173,7 +173,7 @@
 			Weavemail
 			<div class="demo">(alpha test)</div>
 		</div>
-	
+
 	{#if keys != null || $keyStore.isLoggedIn}
 		<div class="corner right">
 			<button on:click={openAvatarPopup}>

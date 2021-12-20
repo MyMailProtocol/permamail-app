@@ -37,7 +37,7 @@ Edit [arweaveConfig.ts](https://github.com/MyMailProtocol/mail-app/blob/main/src
 
 > Note: You will need to have sent a transaction locally before another wallet can send a weavemail to your wallet.
 
-Uncomment the [Post Transction](https://github.com/MyMailProtocol/mail-app/blob/main/src/lib/header/Header.svelte#L196) menu item in Header.svelt to be able to post a test transaction to `arlocal` to make it possible for other wallets to send a message to your wallet. If you're testing with multiple wallets locally you'll need to do this for each wallet you wish to receive messages.
+Uncomment the [Post Transction](https://github.com/MyMailProtocol/mail-app/blob/main/src/lib/header/Header.svelte#L196) menu item in header.svelt to be able to post a test transaction to `arlocal` to make it possible for other wallets to send a message to your wallet. If you're testing with multiple wallets locally you'll need to do this for each wallet you wish to receive messages.
 
 ## Developer environment
 
