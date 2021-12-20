@@ -1,6 +1,6 @@
 <script lang="ts">
   export const imageUrl: string = '/src/lib/header/plus.svg';
-  export const onClick = () => {
+  export let onClick = () => {
     console.log('Clicked');
   };
 </script>
