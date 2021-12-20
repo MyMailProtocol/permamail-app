@@ -180,12 +180,13 @@
 				<div alt="ProfileImage" class="downArrow"></div>
 				<div alt="ProfileImage" class="profileImage">
 			</button>
+			<div class="truncate address">{$keyStore.activeAddress}</div>
 		</div>
 	{/if}
 	<!-- Avatar pooup -->
 	<Modal bind:isOpen={isOpenAvatarPopup}>
 		<div slot="header">
-			MENU
+			<div class="truncate">MENU - {$keyStore.activeAddress}</div>
 		</div>
 		<div slot="content">
 			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}gateway.svg" onClick={authenticateWithGateway}>
@@ -344,9 +345,24 @@
 	}
 
 	.right {
+		padding: 0.33em;
 		right: 1em;
 		flex-direction: row-reverse;
+		border-radius: 1rem;
+		background-color: var(--color-bg--sheet);
 	}
+
+	.truncate {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+  .address {
+    font-size: var(--font-size-small);
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+  }
 
 	.right button {
 		display:flex;
