@@ -48,7 +48,7 @@
 	}
 
 	function viewAddress() {
-		window.open('https://arweave.app/wallet/0/tx-list', "_blank", "noopener")
+		window.open(`https://viewblock.io/arweave/address/${$keyStore.activeAddress}`, '_blank', 'noopener');
 	}
 
 	onMount(async () => {
