@@ -1,16 +1,18 @@
-let supportsPassive = false
+let supportsPassive = false;
 try {
-  let opts = Object.defineProperty({}, 'passive', {
+  const opts = Object.defineProperty({}, 'passive', {
     get: function () {
-      supportsPassive = true
+      supportsPassive = true;
     },
-  })
-  window.addEventListener('test', null, opts)
-} catch (e) { }
+  });
+  window.addEventListener('test', null, opts);
+} catch (e) {
+  // ignore
+}
 
 export default {
   $(selector) {
-    if (typeof selector === "string") {
+    if (typeof selector === 'string') {
       return document.querySelector(selector);
     }
     return selector;
@@ -19,27 +21,34 @@ export default {
     // @ts-ignore
     return Object.assign(...args);
   },
-  addListeners(element, events, handler, opts = { passive: false }) {
+  addListeners(
+    element,
+    events,
+    handler,
+    opts = { passive: false },
+  ) {
     if (!(events instanceof Array)) {
-      events = [events]
+      events = [events];
     }
-    for (let i = 0; i < events.length; i++) {
+    for (let i = 0; i < events.length; i += 1) {
       element.addEventListener(
         events[i],
         handler,
-        supportsPassive ? opts : false
-      )
+        supportsPassive ? opts : false,
+      );
     }
   },
   removeListeners(element, events, handler) {
     if (!(events instanceof Array)) {
-      events = [events]
+      events = [events];
     }
-    for (let i = 0; i < events.length; i++) {
-      element.removeEventListener(events[i], handler)
+    for (let i = 0; i < events.length; i += 1) {
+      element.removeEventListener(events[i], handler);
     }
   },
-  cumulativeOffset(element) {
+  cumulativeOffset(
+    element,
+  ) {
     let top = 0;
     let left = 0;
 
@@ -50,37 +59,58 @@ export default {
     } while (element);
 
     return {
-      top: top,
-      left: left
+      top,
+      left,
     };
   },
-  directScroll(element) {
+  directScroll(
+    element,
+  ) {
     return element && element !== document && element !== document.body;
   },
-  scrollTop(element, value) {
-    let inSetter = value !== undefined;
+  scrollTop(
+    element,
+    value,
+  ) {
+    const inSetter = (value !== undefined);
     if (this.directScroll(element)) {
-      return inSetter ? (element.scrollTop = value) : element.scrollTop;
-    } else {
-      return inSetter
-        ? (document.documentElement.scrollTop = document.body.scrollTop = value)
-        : window.pageYOffset ||
-        document.documentElement.scrollTop ||
-        document.body.scrollTop ||
-        0;
+      if (inSetter) {
+        element.scrollTop = value;
+        return value;
+      }
+      return element.scrollTop;
     }
+
+    if (inSetter) {
+      document.documentElement.scrollTop = value;
+      document.body.scrollTop = value;
+      return value;
+    }
+    return window.pageYOffset
+      || document.documentElement.scrollTop
+      || document.body.scrollTop
+      || 0;
   },
-  scrollLeft(element, value) {
-    let inSetter = value !== undefined;
+  scrollLeft(
+    element,
+    value,
+  ) {
+    const inSetter = (value !== undefined);
     if (this.directScroll(element)) {
-      return inSetter ? (element.scrollLeft = value) : element.scrollLeft;
-    } else {
-      return inSetter
-        ? (document.documentElement.scrollLeft = document.body.scrollLeft = value)
-        : window.pageXOffset ||
-        document.documentElement.scrollLeft ||
-        document.body.scrollLeft ||
-        0;
+      if (inSetter) {
+        element.scrollLeft = value;
+        return value;
+      }
+      return element.scrollLeft;
     }
-  }
+    if (inSetter) {
+      document.documentElement.scrollLeft = value;
+      document.body.scrollLeft = value;
+      return value;
+    }
+    return window.pageXOffset
+      || document.documentElement.scrollLeft
+      || document.body.scrollLeft
+      || 0;
+  },
 };

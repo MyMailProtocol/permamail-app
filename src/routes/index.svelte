@@ -324,6 +324,36 @@
   async function getWeavemailItems(): Promise<InboxItem[]> {
     const address: string = await getActiveAddress(wallet);
 
+    if (0) {
+      // create fake inbox entries
+
+      const fakeInboxItems: InboxItem[] = [];
+      for (let i: number = 0; i < 10; i += 1) {
+        const fadeInboxItem: InboxItem = {
+          toAddress: address,
+          toName: 'You',
+          fromName: 'Dmac',
+          fromAddress: '9tR0-C1m3_sCWCoVCChg4gFYKdiH5_ZDyZpdJ2DDRw',
+          date: '',
+          subject: `RE: Spam #${i}`,
+          id: 0,
+          threadId: `0`,
+          isFlagged: false,
+          isRecent: false,
+          isSeen: true,
+          fee: 0,
+          amount: 0,
+          contentType: 'weavemail',
+          timestamp: i,
+          body: `This is spam ${i}`,
+          txid: '',
+          appVersion: '',
+        };
+        fakeInboxItems.push(fadeInboxItem);
+      }
+      return fakeInboxItems;
+    }
+
     $keyStore.activeAddress = address;
 
     const json: any = await getWeavemailTransactions(arweave, address);

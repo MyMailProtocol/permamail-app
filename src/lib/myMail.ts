@@ -22,31 +22,39 @@ export interface InboxItem {
   timestamp: number;
 }
 
-function b64UrlEncode(b64UrlString: string): string {
+function b64UrlEncode(
+  b64UrlString: string,
+): string {
   return b64UrlString
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
     .replace(/\=/g, '');
 }
 
-export function bufferTob64(buffer: Uint8Array): string {
+export function bufferTob64(
+  buffer: Uint8Array,
+): string {
   return B64js.fromByteArray(new Uint8Array(buffer));
 }
 
-export function bufferTob64Url(buffer: Uint8Array): string {
+export function bufferTob64Url(
+  buffer: Uint8Array,
+): string {
   return b64UrlEncode(bufferTob64(buffer));
 }
 
-export async function getThreadId(inboxItem: InboxItem): Promise<string> {
+export async function getThreadId(
+  inboxItem: InboxItem,
+): Promise<string> {
   // if there's no subject line, create a unique string from the sender+timestamp
-  const subjectLine = inboxItem.subject || inboxItem.fromAddress + inboxItem.timestamp;
+  const subjectLine: string = inboxItem.subject || inboxItem.fromAddress + inboxItem.timestamp;
 
   // remove anything in square brackets
-  let subject = subjectLine.replace(/(\[.*?\])/g, '');
+  let subject: string = subjectLine.replace(/(\[.*?\])/g, '');
 
   // remove all words followed by a colon from the beginning of the string
   if (subject.includes(':')) {
-    let wordArray = subject.split(' ');
+    let wordArray: string[] = subject.split(' ');
     while (wordArray[0].endsWith(':')) {
       wordArray = wordArray.slice(1);
     }
@@ -57,11 +65,11 @@ export async function getThreadId(inboxItem: InboxItem): Promise<string> {
   subject = subject.replace(/\s/g, '');
 
   // create a sha-256 hash of the pruned subject line, and b64 encode it
-  const encoder = new TextEncoder();
-  const data = encoder.encode(subject);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = new Uint8Array(hashBuffer); // convert buffer to byte array
-  const b64UrlHash = bufferTob64Url(hashArray);
+  const encoder: TextEncoder = new TextEncoder();
+  const data: Uint8Array = encoder.encode(subject);
+  const hashBuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray: Uint8Array = new Uint8Array(hashBuffer); // convert buffer to byte array
+  const b64UrlHash: string = bufferTob64Url(hashArray);
   return b64UrlHash;
 }
 
@@ -78,7 +86,9 @@ export class InboxThread {
 
   public isSeen: boolean;
 
-  async init(item: InboxItem) {
+  async init(
+    item: InboxItem,
+  ) {
     this.id = await getThreadId(item);
     this.subject = item.subject;
     this.items = null;
@@ -87,13 +97,15 @@ export class InboxThread {
     this.addItem(item);
   }
 
-  addItem(item: InboxItem) {
+  addItem(
+    item: InboxItem,
+  ) {
     if (!this.items) {
       this.items = [];
       this.items.push(item);
     } else {
       // insert the item chronologically into a the existing thread
-      let insertIndex = 0;
+      let insertIndex: number = 0;
       if (item.timestamp > this.items[this.items.length - 1].timestamp) {
         // insert at the end of the item list
         insertIndex = this.items.length;
@@ -108,7 +120,7 @@ export class InboxThread {
     }
 
     // update properties to make sure they reflect the latest data
-    const recentItem = this.items[this.items.length - 1];
+    const recentItem: InboxItem = this.items[this.items.length - 1];
     this.timestamp = recentItem.timestamp;
   }
 }
@@ -126,8 +138,8 @@ export async function decryptMail(
   privateKey: CryptoKey,
 ): Promise<Uint8Array> {
   // Split up the transaction data into the correct parts
-  const symmetricKeyBytes = new Uint8Array(encryptedData.slice(0, 512));
-  const mailBytes = new Uint8Array(encryptedData.slice(512));
+  const symmetricKeyBytes: Uint8Array = new Uint8Array(encryptedData.slice(0, 512));
+  const mailBytes: Uint8Array = new Uint8Array(encryptedData.slice(512));
 
   // Decrypt the symmetric key from the first part
   const symmetricKey = await window.crypto.subtle.decrypt(
@@ -140,8 +152,10 @@ export async function decryptMail(
   return arweave.crypto.decrypt(mailBytes, symmetricKey);
 }
 
-async function generateRandomBytes(length: number) {
-  const array = new Uint8Array(length);
+async function generateRandomBytes(
+  length: number,
+): Promise<Uint8Array> {
+  const array: Uint8Array = new Uint8Array(length);
   window.crypto.getRandomValues(array);
   return array;
 }
@@ -152,10 +166,10 @@ export async function encryptMail(
   subject: string,
   publicKey: CryptoKey,
 ): Promise<string> {
-  const contentEncoder = new TextEncoder();
-  const newFormat = JSON.stringify({ subject, body: content });
-  const mailBuffer = contentEncoder.encode(newFormat);
-  const keyBuffer = await generateRandomBytes(256);
+  const contentEncoder: TextEncoder = new TextEncoder();
+  const newFormat: string = JSON.stringify({ subject, body: content });
+  const mailBuffer: Uint8Array = contentEncoder.encode(newFormat);
+  const keyBuffer: Uint8Array = await generateRandomBytes(256);
 
   // Encrypt data segments
   const encryptedMail = await arweave.crypto.encrypt(mailBuffer, keyBuffer);
@@ -172,18 +186,26 @@ export async function encryptMail(
 }
 
 export async function getPrivateKey(wallet: object) {
-  const walletCopy = Object.create(wallet);
+  const walletCopy: any = Object.create(wallet);
   walletCopy.alg = 'RSA-OAEP-256';
   walletCopy.ext = true;
 
-  const algo = { name: 'RSA-OAEP', hash: { name: 'SHA-256' } };
+  const algo: any = {
+    name: 'RSA-OAEP',
+    hash: {
+      name: 'SHA-256',
+    },
+  };
 
   return crypto.subtle.importKey('jwk', walletCopy, algo, false, [
     'decrypt',
   ]);
 }
 
-export async function getPublicKey(arweave, address) {
+export async function getPublicKey(
+  arweave: any,
+  address: any
+) {
   const txid = await arweave.wallets.getLastTransactionID(address);
 
   if (txid === '') {
@@ -204,12 +226,20 @@ export async function getPublicKey(arweave, address) {
     ext: true,
   };
 
-  const algo = { name: 'RSA-OAEP', hash: { name: 'SHA-256' } };
+  const algo = {
+    name: 'RSA-OAEP',
+    hash: {
+      name: 'SHA-256',
+    },
+  };
 
   return crypto.subtle.importKey('jwk', keyData, algo, false, ['encrypt']);
 }
 
-export async function getWeavemailTransactions(arweave, address: string): Promise<any> {
+export async function getWeavemailTransactions(
+  arweave: any,
+  address: string
+): Promise<any> {
   // TODO: replace with ardb
   const res2 = await arweave.api.post('/graphql', {
     query: `
@@ -233,7 +263,10 @@ export async function getWeavemailTransactions(arweave, address: string): Promis
   return res2.data;
 }
 
-export async function getWalletName(arweave, address) {
+export async function getWalletName(
+  arweave,
+  address,
+) {
   // TODO: replace with ardb
   const res2 = await arweave.api.post('/graphql', {
     query: `
@@ -269,12 +302,17 @@ export async function getWalletName(arweave, address) {
   return tx.get('data', { decode: true, string: true });
 }
 
-export async function getLatestVersionTxid(arweave): Promise<string> {
+export async function getLatestVersionTxid(
+  arweave,
+): Promise<string> {
   console.log(`getLatestVersion: ${window.location.pathname}`);
   console.log(window.location);
-  const txid = window.location.pathname.split('/')[1];
+  const txid: string = window.location.pathname.split('/')[1];
   console.log(`txid: ${txid}`);
-  if (!txid) return '';
+  if (!txid) {
+    return '';
+  }
+
   let tx = null;
   try {
     tx = await arweave.transactions.get(txid);
@@ -282,9 +320,12 @@ export async function getLatestVersionTxid(arweave): Promise<string> {
     console.log(err);
   }
   console.log(`transaction: ${tx}`);
-  if (!tx) return '';
+  if (!tx) {
+    return '';
+  }
   const { owner } = tx;
   console.log(`owner: ${owner}`);
+
   const address = await arweave.wallets.ownerToAddress(owner);
   const queryObject = {
     query:
@@ -321,19 +362,26 @@ export async function getLatestVersionTxid(arweave): Promise<string> {
   return newVersionTxid;
 }
 
-export async function submitWeavemail(arweave, toAddress, subject, body, amount: number, wallet) {
-  let tokens = '0';
+export async function submitWeavemail(
+  arweave,
+  toAddress,
+  subject,
+  body,
+  amount: number,
+  wallet,
+) {
+  let tokens: string = '0';
   if (amount > 0) {
     tokens = arweave.ar.arToWinston(amount.toString());
   }
 
-  const publicKey = await getPublicKey(arweave, toAddress);
+  const publicKey: CryptoKey = await getPublicKey(arweave, toAddress);
   if (publicKey === undefined) {
     alert('Error: Recipient has to send a transaction to the network, first!');
     return;
   }
 
-  const content = await encryptMail(arweave, body, subject, publicKey);
+  const content: string = await encryptMail(arweave, body, subject, publicKey);
 
   const tx = await arweave.createTransaction({
     target: toAddress,
