@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { fade } from 'svelte/transition';
-  import { goto } from '$app/navigation';
-  import { getFormattedTime, getExpireLabel } from '$lib/formattedTime';
-  import { sentMessage } from '$lib/routedEventStore';
-  import { keyStore } from '$lib/keyStore';
-  import KeyDropper from '/src/components/KeyDropper.svelte';
-  import Arweave from 'arweave';
+  import { onMount, onDestroy } from "svelte";
+  import { fade } from "svelte/transition";
+  import { goto } from "$app/navigation";
+  import { getFormattedTime, getExpireLabel } from "$lib/formattedTime";
+  import { sentMessage } from "$lib/routedEventStore";
+  import { keyStore } from "$lib/keyStore";
+  import WalletPicker from "/src/components/WalletPicker.svelte";
+  import Arweave from "arweave";
+  import webWallet from "$lib/webWallet";
   import {
     getWeavemailTransactions,
     decryptMail,
@@ -14,12 +15,10 @@
     getWalletName,
     getThreadId,
     InboxThread,
-  } from '$lib/myMail';
-  import type { InboxItem } from '$lib/myMail';
-  import { bufferTob64 } from '$lib/myMail';
-  import config from '$lib/arweaveConfig';
-
-  export let prerender = true;
+  } from "$lib/myMail";
+  import type { InboxItem } from "$lib/myMail";
+  import { bufferTob64 } from "$lib/myMail";
+  import config from "$lib/arweaveConfig";
 
   // Used for testing a cold start
   // $keyStore.keys = null;
@@ -92,6 +91,8 @@
     }
     pageStartupLogic();
   });
+
+  onDestroy(unsubscribe);
 
   /**
    * Takes a list of InboxItems loaded from arweave and merges them into the
@@ -253,28 +254,39 @@
    * @param txid
    * @param wallet
    */
-  async function getMessageJSON(
-    txid: string,
-    wallet?: any,
-  ): Promise<any> {
-    const data = await arweave.transactions.getData(txid);
-    if (wallet !== null) {
-      const key = await getPrivateKey(wallet);
-      const decryptString = await arweave.utils.bufferToString(
+   async function getMessageJSON(txid: string, wallet?): Promise<any> {
+    let data = await arweave.transactions.getData(txid);
+    if (wallet != null) {
+      let key = await getPrivateKey(wallet);
+      let decryptString = await arweave.utils.bufferToString(
         await decryptMail(arweave, arweave.utils.b64UrlToBuffer(data), key)
       );
-      // console.log(decryptString);
-      const mailParse = JSON.parse(decryptString);
+      let mailParse = JSON.parse(decryptString);
+      return mailParse;
+    } else if (webWallet.connected) {
+      let encryptedData = arweave.utils.b64UrlToBuffer(data);
+      // Split up the transaction data into the correct parts
+      const symmetricKeyBytes = new Uint8Array(encryptedData.slice(0, 512));
+      const mailBytes = new Uint8Array(encryptedData.slice(512));
+
+      // Decrypt the symmetric key from the first part
+      let keyString = arweave.utils.bufferTob64(symmetricKeyBytes);
+      const symmetricKey = await webWallet.decrypt(keyString, { name: 'RSA-OAEP' } );
+      let keyBuffer = new arweave.utils.b64UrlToBuffer(symmetricKey);
+
+      // Use the symmetric key to decrypt the mail from the last part
+      let decryptString = await arweave.crypto.decrypt(mailBytes, keyBuffer);
+      console.log(`decryptString: ${decryptString}`);
+      let mailParse = JSON.parse(decryptString);
+      return mailParse;
+    } else {
+      let decryptString = await window.arweaveWallet.decrypt(
+        arweave.utils.b64UrlToBuffer(data),
+        { algorithm: "RSA-OAEP", hash: "SHA-256" }
+      );
+      let mailParse = JSON.parse(decryptString);
       return mailParse;
     }
-    const decryptString: string = await window.arweaveWallet.decrypt(
-      arweave.utils.b64UrlToBuffer(data), {
-        algorithm: 'RSA-OAEP',
-        hash: 'SHA-256',
-      },
-    );
-    const mailParse: any = JSON.parse(decryptString);
-    return mailParse;
   }
 
   /**
@@ -472,9 +484,11 @@ Thanks for checking out our project 💌
     } else {
       console.log('logged out');
       _inboxThreads = [];
-      unsubscribe();
       return;
     }
+
+    console.log(`webWaller:`);
+    console.log(webWallet);
 
     // Make sure we have a wallet initialized
     console.log('Wallet loaded');
@@ -520,8 +534,8 @@ Thanks for checking out our project 💌
   <title>Inbox</title>
 </svelte:head>
 <section>
-  {#if $keyStore.isLoggedIn === false}
-    <KeyDropper on:login={onLogin} />
+  {#if $keyStore.isLoggedIn == false}
+    <WalletPicker on:login={onLogin} />
   {:else}
     {#if $sentMessage}
       <div out:fade={{ delay: 1300, duration: 400 }} class="flashRow">

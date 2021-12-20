@@ -1,7 +1,7 @@
 <script lang="ts">
   import { keyStore } from "$lib/keyStore";
   import { createEventDispatcher } from "svelte";
-  import { ArweaveWebWallet } from 'arweave-wallet-connector'
+  import webWallet from '$lib/webWallet';
 
   const dispatch = createEventDispatcher();
   const onLoggedIn = () => {
@@ -28,6 +28,17 @@
     ]);
     onLoggedIn();
   }
+
+  async function onArweaveAppLogin() {
+   
+    console.log(`address is: ${webWallet.address}`);
+    console.log(webWallet);
+    if (webWallet.address === undefined) {
+      var msg = await webWallet.connect();
+      console.log(`msg is: ${msg}`);
+    }
+    onLoggedIn();
+  }
 </script>
 
 <section>
@@ -37,7 +48,7 @@
   </div>
   <div class="or-block">or login with a wallet</div>
   <button on:click={onARConnectLogin} class="walletButton"> ArConnect </button>
-  <button on:click={onARConnectLogin} class="walletButton">
+  <button on:click={onArweaveAppLogin} class="walletButton">
     Arweave.app
   </button>
 </section>
