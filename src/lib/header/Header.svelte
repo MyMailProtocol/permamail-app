@@ -180,7 +180,6 @@
 				<div alt="ProfileImage" class="downArrow"></div>
 				<div alt="ProfileImage" class="profileImage">
 			</button>
-			${wallet}
 		</div>
 	{/if}
 	<!-- Avatar pooup -->
@@ -345,8 +344,6 @@
 	}
 
 	.right {
-		border: 1px solid;
-		border-radius: 3rem;
 		right: 1em;
 		flex-direction: row-reverse;
 	}

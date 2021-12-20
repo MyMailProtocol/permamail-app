@@ -19,7 +19,7 @@
   import { bufferTob64 } from '$lib/myMail';
   import config from '$lib/arweaveConfig';
 
-  export const prerender = true;
+  export let prerender = true;
 
   // Used for testing a cold start
   // $keyStore.keys = null;

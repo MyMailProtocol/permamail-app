@@ -3,7 +3,7 @@
   import type { InboxItem } from '$lib/myMail';
   import ThreadMessage from '/src/components/ThreadMessage.svelte';
 
-  export const prerender = true;
+  export let prerender = true;
 
   async function markMessageAsSeen(inboxItem: InboxItem) {
     if (inboxItem.contentType === 'weaveMail') {
