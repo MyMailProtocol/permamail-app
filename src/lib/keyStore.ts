@@ -4,7 +4,7 @@ import { writable } from 'svelte-local-storage-store'
 // Second param is the initial value.
 export const keyStore = writable('keyStore', {
   keys: null,
-  gatewayUrl: "",
+  gatewayUrl: '',
   weaveMailInboxThreads: [],
   emailInboxThreads: [],
   inboxThreads: [],
