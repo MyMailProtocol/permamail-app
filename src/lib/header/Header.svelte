@@ -180,7 +180,7 @@
 				<div alt="ProfileImage" class="downArrow"></div>
 				<div alt="ProfileImage" class="profileImage">
 			</button>
-			<div class="truncate">{$keyStore.activeAddress}</div>
+			<div class="truncate address">{$keyStore.activeAddress}</div>
 		</div>
 	{/if}
 	<!-- Avatar pooup -->
@@ -348,7 +348,7 @@
 		padding: 0.33em;
 		right: 1em;
 		flex-direction: row-reverse;
-		border-radius: 30rem;
+		border-radius: 1rem;
 		background-color: var(--color-bg--sheet);
 	}
 
@@ -357,6 +357,12 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
+
+  .address {
+    font-size: var(--font-size-small);
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+  }
 
 	.right button {
 		display:flex;
