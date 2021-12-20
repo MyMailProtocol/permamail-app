@@ -329,7 +329,7 @@
 
       const fakeInboxItems: InboxItem[] = [];
       for (let i: number = 0; i < 10; i += 1) {
-        const fadeInboxItem: InboxItem = {
+        const fakeInboxItem: InboxItem = {
           toAddress: address,
           toName: 'You',
           fromName: 'Dmac',
@@ -337,7 +337,7 @@
           date: '',
           subject: `RE: Spam #${i}`,
           id: 0,
-          threadId: `0`,
+          threadId: '0',
           isFlagged: false,
           isRecent: false,
           isSeen: true,
@@ -349,7 +349,7 @@
           txid: '',
           appVersion: '',
         };
-        fakeInboxItems.push(fadeInboxItem);
+        fakeInboxItems.push(fakeInboxItem);
       }
       return fakeInboxItems;
     }
@@ -464,7 +464,7 @@ It's very early and we have big plans to develop this project to have full email
 While we can't change this version of the app we can publish new versions with new features⚡️. If you like the new features you can choose to use that version instead.
 This is the power of apps on the permaweb🐘, you are in control💪.
 </br></br>
-If you like what you see and are curious to learn more, <u>reply to this message</u> and const us know how you found us. We'll send you links to our community where you can learn more about our roadmap and share your on ideas for features you'd like to see.
+If you like what you see and are curious to learn more, <u>reply to this message</u> and let know how you found us. We'll send you links to our community where you can learn more about our roadmap and share your on ideas for features you'd like to see.
 </br></br>
 Thanks for checking out our project 💌
 </br>
