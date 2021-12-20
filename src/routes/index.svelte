@@ -243,7 +243,11 @@
       return await arweave.wallets.jwkToAddress(wallet);
     }
     if ($keyStore.isLoggedIn) {
-      return await window.arweaveWallet.getActiveAddress();
+      if (webWallet.connected) {
+        return webWallet.address;
+      } else {
+        return await window.arweaveWallet.getActiveAddress();
+      }
     }
     return null;
   }
