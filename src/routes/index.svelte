@@ -323,6 +323,9 @@
    */
   async function getWeavemailItems(): Promise<InboxItem[]> {
     const address: string = await getActiveAddress(wallet);
+
+    $keyStore.activeAddress = address;
+
     const json: any = await getWeavemailTransactions(arweave, address);
     console.log(`${json.data.transactions.edges.length} to resolve`);
 

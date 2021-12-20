@@ -8,5 +8,6 @@ export const keyStore = writable('keyStore', {
   weaveMailInboxThreads: [],
   emailInboxThreads: [],
   inboxThreads: [],
-  isLoggedIn: false
+  isLoggedIn: false,
+  activeAddress: '',
 });
