@@ -28,7 +28,8 @@
 			"$lib/*": [
 				"src/lib/*"
 			]
-		}
+		},
+		"types": ["jest"]
 	},
 	"include": [
 		"src/**/*.d.ts",
