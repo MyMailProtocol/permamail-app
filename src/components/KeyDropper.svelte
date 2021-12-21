@@ -10,7 +10,7 @@
     const reader: FileReader = new FileReader();
     reader.readAsText(jwk);
     reader.onload = () => {
-      $keyStore.keys = reader.result.toString();;
+      $keyStore.keys = reader.result.toString();
       onLoggedIn();
     };
   }

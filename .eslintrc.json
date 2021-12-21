@@ -1,39 +1,43 @@
 {
-    "env": {
-        "browser": true,
-        "es2021": true
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "airbnb-base"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 13,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "svelte3",
+    "import"
+  ],
+  "overrides": [{
+    "files": ["*.svelte"],
+    "processor": "svelte3/svelte3"
+  }],
+  "rules": {
+    "no-console": ["off", {}],
+    "no-alert": ["off", {}],
+    "import/first": ["off", {}],
+    "import/extensions": ["off", {}],
+    "import/no-unresolved": ["off", {}],
+    "import/no-absolute-path": ["off", {}]
+  },
+  "settings": {
+    "svelte3/typescript": true,
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx", "*.svelte"]
     },
-    "extends": [
-        "airbnb-base"
-    ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaVersion": 13,
-        "sourceType": "module"
-    },
-    "plugins": [
-        "@typescript-eslint",
-        "svelte3",
-        "import"
-    ],
-    "overrides": [
-        {
-            "files": ["*.svelte"],
-            "processor": "svelte3/svelte3"
-        }
-    ],
-    "rules": {
-    },
-    "settings": {
-        "svelte3/typescript": true,
-        "import/parsers": {
-            "@typescript-eslint/parser": [".ts", ".tsx", "*.svelte"]
-        },
-        "import/resolver": {
-            "typescript": {
-                "alwaysTryTypes": true,
-                "project": "tsconfig.json"
-            }
-        }
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "tsconfig.json"
+      }
     }
+  }
 }
