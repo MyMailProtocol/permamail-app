@@ -47,6 +47,10 @@
 		window.open("https://github.com/MyMailProtocol/mail-app", "_blank", "noopener")
 	}
 
+	function viewAddress() {
+		window.open(`https://viewblock.io/arweave/address/${$keyStore.activeAddress}`, '_blank', 'noopener');
+	}
+
 	onMount(async () => {
 		console.log("getting latest version");
 		let latestVersion = await getLatestVersionTxid(arweave);
@@ -180,13 +184,15 @@
 				<div alt="ProfileImage" class="downArrow"></div>
 				<div alt="ProfileImage" class="profileImage">
 			</button>
-			<div class="truncate address">{$keyStore.activeAddress}</div>
+			<div class="truncate address" on:click={viewAddress}>
+				{$keyStore.activeAddress}
+			</div>
 		</div>
 	{/if}
 	<!-- Avatar pooup -->
 	<Modal bind:isOpen={isOpenAvatarPopup}>
 		<div slot="header">
-			<div class="truncate">MENU - {$keyStore.activeAddress}</div>
+			<div class="truncate" on:click={viewAddress}>MENU - {$keyStore.activeAddress}</div>
 		</div>
 		<div slot="content">
 			<!-- <ModalItem imageUrl="{$page.path == "/" ? "" : "../"}gateway.svg" onClick={authenticateWithGateway}>
