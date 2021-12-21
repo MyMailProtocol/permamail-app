@@ -97,12 +97,12 @@ const _scrollTo = (options) => {
     );
   }
 
-  loop((now) => {
-    if (!started && now >= startTime) {
+  loop((time) => {
+    if (!started && time >= startTime) {
       start(false);
     }
 
-    if (started && now >= endTime) {
+    if (started && time >= endTime) {
       tick(1);
       stop();
       onDone(element, { x, y });
@@ -114,7 +114,7 @@ const _scrollTo = (options) => {
       return false;
     }
     if (started) {
-      const p = now - startTime;
+      const p = time - startTime;
       const t = 0 + 1 * easing(p / duration);
       tick(t);
     }

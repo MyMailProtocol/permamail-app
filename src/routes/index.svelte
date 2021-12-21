@@ -14,9 +14,9 @@
     getWalletName,
     getThreadId,
     InboxThread,
+    bufferTob64,
   } from '$lib/myMail';
   import type { InboxItem } from '$lib/myMail';
-  import { bufferTob64 } from '$lib/myMail';
   import config from '$lib/arweaveConfig';
 
   export let prerender = true;
@@ -52,6 +52,53 @@
    * InboxItem(s) contained by the InboxThread are displayed.
    *
    */
+
+  /**
+   * Detects logout and logen status and performs inbox item loading. If it's
+   * the first time and there are no cached inbox threads, it uses a promise
+   * to trigger the "Waiting..." text. Otherwise it performs a background
+   * loading operation.
+   */
+   function pageStartupLogic(): void {
+    if ($keyStore.keys !== null) {
+      wallet = JSON.parse($keyStore.keys);
+      console.log(`wallet is ${wallet}`);
+    } else if ($keyStore.isLoggedIn) {
+      wallet = null;
+    } else {
+      console.log('logged out');
+      _inboxThreads = [];
+      unsubscribe();
+      return;
+    }
+
+    // Make sure we have a wallet initialized
+    console.log('Wallet loaded');
+
+    if (!$keyStore.inboxThreads || $keyStore.inboxThreads.length === 0) {
+      isLoadingMessages = true;
+      console.log('start loading messages');
+      // We don't have any mailItems, use the loading promise to show "Waiting..."
+      promise = getWeavemailItems().then(async (weaveMailItems) => {
+        await mergeInboxItems(weaveMailItems);
+        console.log('weavemail items loaded async at STARTUP');
+        isLoadingMessages = false;
+        $keyStore.weaveMailInboxThreads = _inboxThreads;
+        return _inboxThreads;
+      });
+    } else {
+      _inboxThreads = $keyStore.inboxThreads;
+      promise = Promise.resolve(_inboxThreads);
+      // Don't use the loading promise here, we want to load these in the background.
+      getWeavemailItems().then(async (weaveMailItems) => {
+        await mergeInboxItems(<InboxItem[]>weaveMailItems);
+        if ($keyStore.isLoggedIn) {
+          $keyStore.weaveMailInboxThreads = _inboxThreads;
+          console.log('weavemail items BACKGROUND loaded async');
+        }
+      });
+    }
+  }
 
   const unsubscribe = keyStore.subscribe((store: any) => {
     console.log(`subscribe changed ${isLoggedIn} ${store.isLoggedIn}`);
@@ -94,13 +141,118 @@
   });
 
   /**
+   * Takes the threadId that's derived from the subject line and combines it
+   * with the sender address, then SHA-256 hashs it again to generate a unique
+   * but still deterministic thread id. NOTE-This will all have to change when
+   * sending a message to multiple contacts is possible.
+   * @param inboxItem The item/message for which a unique threadId is desired
+   */
+  async function getUniqueThreadId(
+    inboxItem: InboxItem,
+  ) {
+    const threadId: string = await getThreadId(inboxItem);
+
+    // create a sha-256 hash of the threadId + the sender wallet address
+    const encoder: TextEncoder = new TextEncoder();
+    const data: Uint8Array = encoder.encode(threadId + inboxItem.fromAddress);
+    const hashBuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray: Uint8Array = new Uint8Array(hashBuffer); // convert buffer to byte array
+    const b64UrlHash: string = bufferTob64(hashArray);
+    return b64UrlHash;
+  }
+
+  /**
+   * Retrieves the wallet address active for the the app. Handles getting the
+   * address from jwk or ArConnect.
+   * @param wallet jwk object if used
+   */
+  async function getActiveAddress(
+    wallet?: any,
+  ): Promise<string> {
+    if (wallet !== null) {
+      return await arweave.wallets.jwkToAddress(wallet);
+    }
+    if ($keyStore.isLoggedIn) {
+      return await window.arweaveWallet.getActiveAddress();
+    }
+    return null;
+  }
+
+  /**
+   * Decrypts the message assocaited with a specific txid, uses the jwk wallet
+   * or ArConnect to accomplish the decryption task
+   * @param txid
+   * @param wallet
+   */
+  async function getMessageJSON(
+    txid: string,
+    wallet?: any,
+  ): Promise<any> {
+    const data = await arweave.transactions.getData(txid);
+    if (wallet !== null) {
+      const key = await getPrivateKey(wallet);
+      const decryptString = await arweave.utils.bufferToString(
+        await decryptMail(arweave, arweave.utils.b64UrlToBuffer(data), key),
+      );
+      // console.log(decryptString);
+      const mailParse = JSON.parse(decryptString);
+      return mailParse;
+    }
+    const decryptString: string = await window.arweaveWallet.decrypt(
+      arweave.utils.b64UrlToBuffer(data), {
+        algorithm: 'RSA-OAEP',
+        hash: 'SHA-256',
+      },
+    );
+    const mailParse: any = JSON.parse(decryptString);
+    return mailParse;
+  }
+
+  /**
+   * Hander for any time an InboxThread is clicked in the inbox
+   * @param inboxThread The clicked thread
+   */
+  function handleInboxThreadClick(
+    inboxThread: InboxThread,
+  ): void {
+    // If we're selecting some text on the page, give the user the chance to copy it before opening the item
+    // until we have contact managment, this ends up being the best way to copy a sender address
+    const selection = window.getSelection();
+    if (selection.toString()) {
+      return;
+    }
+
+    inboxThread.isSeen = true;
+    _inboxThreads.sort((a: InboxThread, b: InboxThread) => {
+      if (a.isSeen !== b.isSeen) {
+        if (a.isSeen === false) {
+          return -1;
+        }
+        return 1;
+      }
+      return b.timestamp - a.timestamp;
+    });
+
+    // More brute force client side welcome message logic, sorry!
+    // All this goes away with inbox nodes
+    if (welcomeMessage
+        && inboxThread.items.length === 1
+        && inboxThread.items[0].threadId === welcomeMessage.threadId) {
+      localStorage.welcomeMessageSeen = true;
+    }
+
+    localStorage.inboxThread = JSON.stringify(inboxThread);
+    goto('message/viewThread');
+  }
+
+  /**
    * Takes a list of InboxItems loaded from arweave and merges them into the
    * inbox. This is a bit of a misnomer however because in re-writing this
    * several times, the merging behavior was lost. Now it just replaces the
    * existing inbox threads.
    * @param newItems An array of inbox items to bundle into threads
    */
-  async function mergeInboxItems(
+   async function mergeInboxItems(
     newItems: InboxItem[],
   ) {
     // Get the most recent timestamp from existing threads
@@ -181,7 +333,7 @@
             newThread.isSeen = false;
           }
         }
-      })
+      }),
     ).then(() => {
       threads.sort((a, b) => {
         if (a.isSeen !== b.isSeen) {
@@ -210,111 +362,6 @@
   }
 
   /**
-   * Takes the threadId that's derived from the subject line and combines it
-   * with the sender address, then SHA-256 hashs it again to generate a unique
-   * but still deterministic thread id. NOTE-This will all have to change when
-   * sending a message to multiple contacts is possible.
-   * @param inboxItem The item/message for which a unique threadId is desired
-   */
-  async function getUniqueThreadId(
-    inboxItem: InboxItem,
-  ) {
-    const threadId: string = await getThreadId(inboxItem);
-
-    // create a sha-256 hash of the threadId + the sender wallet address
-    const encoder: TextEncoder = new TextEncoder();
-    const data: Uint8Array = encoder.encode(threadId + inboxItem.fromAddress);
-    const hashBuffer: ArrayBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray: Uint8Array = new Uint8Array(hashBuffer); // convert buffer to byte array
-    const b64UrlHash: string = bufferTob64(hashArray);
-    return b64UrlHash;
-  }
-
-  /**
-   * Retrieves the wallet address active for the the app. Handles getting the
-   * address from jwk or ArConnect.
-   * @param wallet jwk object if used
-   */
-  async function getActiveAddress(
-    wallet?: any,
-  ): Promise<string> {
-    if (wallet !== null) {
-      return await arweave.wallets.jwkToAddress(wallet);
-    }
-    if ($keyStore.isLoggedIn) {
-      return await window.arweaveWallet.getActiveAddress();
-    }
-    return null;
-  }
-
-  /**
-   * Decrypts the message assocaited with a specific txid, uses the jwk wallet
-   * or ArConnect to accomplish the decryption task
-   * @param txid
-   * @param wallet
-   */
-  async function getMessageJSON(
-    txid: string,
-    wallet?: any,
-  ): Promise<any> {
-    const data = await arweave.transactions.getData(txid);
-    if (wallet !== null) {
-      const key = await getPrivateKey(wallet);
-      const decryptString = await arweave.utils.bufferToString(
-        await decryptMail(arweave, arweave.utils.b64UrlToBuffer(data), key)
-      );
-      // console.log(decryptString);
-      const mailParse = JSON.parse(decryptString);
-      return mailParse;
-    }
-    const decryptString: string = await window.arweaveWallet.decrypt(
-      arweave.utils.b64UrlToBuffer(data), {
-        algorithm: 'RSA-OAEP',
-        hash: 'SHA-256',
-      },
-    );
-    const mailParse: any = JSON.parse(decryptString);
-    return mailParse;
-  }
-
-  /**
-   * Hander for any time an InboxThread is clicked in the inbox
-   * @param inboxThread The clicked thread
-   */
-  function handleInboxThreadClick(
-    inboxThread: InboxThread,
-  ): void {
-    // If we're selecting some text on the page, give the user the chance to copy it before opening the item
-    // until we have contact managment, this ends up being the best way to copy a sender address
-    const selection = window.getSelection();
-    if (selection.toString()) {
-      return;
-    }
-
-    inboxThread.isSeen = true;
-    _inboxThreads.sort((a: InboxThread, b: InboxThread) => {
-      if (a.isSeen !== b.isSeen) {
-        if (a.isSeen === false) {
-          return -1;
-        }
-        return 1;
-      }
-      return b.timestamp - a.timestamp;
-    });
-
-    // More brute force client side welcome message logic, sorry!
-    // All this goes away with inbox nodes
-    if (welcomeMessage
-        && inboxThread.items.length === 1
-        && inboxThread.items[0].threadId === welcomeMessage.threadId) {
-      localStorage.welcomeMessageSeen = true;
-    }
-
-    localStorage.inboxThread = JSON.stringify(inboxThread);
-    goto('message/viewThread');
-  }
-
-    /**
    * Gets a list of weavemail transactions from arweave based on the active
    * wallet address. Then converts them into an array of InboxItems. These get
    * fed into `mergeInboxItems()` where InboxTheads get created for each item
@@ -426,7 +473,7 @@
         // console.log(inboxItem);
 
         return inboxItem;
-      })
+      }),
     );
 
     const result: InboxItem[] = [];
@@ -488,53 +535,6 @@ Thanks for checking out our project 💌
    */
   function handleNewMessageClick(): void {
     goto('message/write');
-  }
-
-  /**
-   * Detects logout and logen status and performs inbox item loading. If it's
-   * the first time and there are no cached inbox threads, it uses a promise
-   * to trigger the "Waiting..." text. Otherwise it performs a background
-   * loading operation.
-   */
-  function pageStartupLogic(): void {
-    if ($keyStore.keys !== null) {
-      wallet = JSON.parse($keyStore.keys);
-      console.log(`wallet is ${wallet}`);
-    } else if ($keyStore.isLoggedIn) {
-      wallet = null;
-    } else {
-      console.log('logged out');
-      _inboxThreads = [];
-      unsubscribe();
-      return;
-    }
-
-    // Make sure we have a wallet initialized
-    console.log('Wallet loaded');
-
-    if (!$keyStore.inboxThreads || $keyStore.inboxThreads.length === 0) {
-      isLoadingMessages = true;
-      console.log('start loading messages');
-      // We don't have any mailItems, use the loading promise to show "Waiting..."
-      promise = getWeavemailItems().then(async (weaveMailItems) => {
-        await mergeInboxItems(weaveMailItems);
-        console.log('weavemail items loaded async at STARTUP');
-        isLoadingMessages = false;
-        $keyStore.weaveMailInboxThreads = _inboxThreads;
-        return _inboxThreads;
-      });
-    } else {
-      _inboxThreads = $keyStore.inboxThreads;
-      promise = Promise.resolve(_inboxThreads);
-      // Don't use the loading promise here, we want to load these in the background.
-      getWeavemailItems().then(async (weaveMailItems) => {
-        await mergeInboxItems(<InboxItem[]>weaveMailItems);
-        if ($keyStore.isLoggedIn) {
-          $keyStore.weaveMailInboxThreads = _inboxThreads;
-          console.log('weavemail items BACKGROUND loaded async');
-        }
-      });
-    }
   }
 
   /**

@@ -82,6 +82,7 @@
   import Arweave from 'arweave';
   import config from '$lib/arweaveConfig';
   import { keyStore } from '$lib/keyStore';
+
   const arweave: any = Arweave.init(config);
 
   export let message: Message;

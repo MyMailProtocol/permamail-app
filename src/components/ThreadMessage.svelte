@@ -1,7 +1,8 @@
 <script lang="ts">
-  import type { InboxItem } from "$lib/myMail";
-  import { getFormattedTime } from "$lib/formattedTime";
+  import type { InboxItem } from '$lib/myMail';
+  import { getFormattedTime } from '$lib/formattedTime';
   import { createEventDispatcher } from 'svelte';
+
   const dispatch = createEventDispatcher();
 
   export let isCollapsed: boolean = true;
@@ -13,7 +14,7 @@
 
   function getMessagePreview(): string {
     if (inboxItem.body && typeof inboxItem.body === 'string') {
-      const stripedHtml: string = inboxItem.body.split("<br")[0].replace(/<[^>]+>/g, '');
+      const stripedHtml: string = inboxItem.body.split('<br')[0].replace(/<[^>]+>/g, '');
       return stripedHtml;
     }
     return '';
@@ -52,12 +53,12 @@
     </div>
   </div> -->
 
-  <div class="header" on:click={() => dispatch('headerClicked', {index})}>
+  <div class="header" on:click={() => dispatch('headerClicked', { index })}>
     <div class="left">
       <img src="../img_avatar.png" alt="ProfileImage" class="avatar"/>
     </div>
     <div class="center">
-      <span class="from"> {inboxItem.fromName == inboxItem.fromAddress ? 'No name' : inboxItem.fromName}
+      <span class="from"> {inboxItem.fromName === inboxItem.fromAddress ? 'No name' : inboxItem.fromName}
         <span class="to"> &lt;{inboxItem.fromAddress}&gt; </span>
       </span>
       {#if !isCollapsed || inboxItem.isRecent}
