@@ -371,7 +371,7 @@
   async function getWeavemailItems(): Promise<InboxItem[]> {
     const address: string = await getActiveAddress(wallet);
 
-    if (0) {
+    if (1) {
       // create fake inbox entries
 
       const fakeInboxItems: InboxItem[] = [];
