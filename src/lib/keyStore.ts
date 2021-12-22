@@ -9,4 +9,5 @@ export const keyStore = writable('keyStore', {
   emailInboxThreads: [],
   inboxThreads: [],
   isLoggedIn: false,
+  activeAddress: '',
 });

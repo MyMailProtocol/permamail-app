@@ -15,11 +15,12 @@
     getWalletName,
     getThreadId,
     InboxThread,
-  } from "$lib/myMail";
-  import type { InboxItem } from "$lib/myMail";
-  import { bufferTob64 } from "$lib/myMail";
-  import config from "$lib/arweaveConfig";
-import { debug } from "svelte/internal";
+    bufferTob64,
+  } from '$lib/myMail';
+  import type { InboxItem } from '$lib/myMail';
+  import config from '$lib/arweaveConfig';
+
+  export let prerender = true;
 
   // Used for testing a cold start
   // $keyStore.keys = null;
@@ -52,6 +53,53 @@ import { debug } from "svelte/internal";
    * InboxItem(s) contained by the InboxThread are displayed.
    *
    */
+
+  /**
+   * Detects logout and logen status and performs inbox item loading. If it's
+   * the first time and there are no cached inbox threads, it uses a promise
+   * to trigger the "Waiting..." text. Otherwise it performs a background
+   * loading operation.
+   */
+   function pageStartupLogic(): void {
+    if ($keyStore.keys !== null) {
+      wallet = JSON.parse($keyStore.keys);
+      console.log(`wallet is ${wallet}`);
+    } else if ($keyStore.isLoggedIn) {
+      wallet = null;
+    } else {
+      console.log('logged out');
+      _inboxThreads = [];
+      unsubscribe();
+      return;
+    }
+
+    // Make sure we have a wallet initialized
+    console.log('Wallet loaded');
+
+    if (!$keyStore.inboxThreads || $keyStore.inboxThreads.length === 0) {
+      isLoadingMessages = true;
+      console.log('start loading messages');
+      // We don't have any mailItems, use the loading promise to show "Waiting..."
+      promise = getWeavemailItems().then(async (weaveMailItems) => {
+        await mergeInboxItems(weaveMailItems);
+        console.log('weavemail items loaded async at STARTUP');
+        isLoadingMessages = false;
+        $keyStore.weaveMailInboxThreads = _inboxThreads;
+        return _inboxThreads;
+      });
+    } else {
+      _inboxThreads = $keyStore.inboxThreads;
+      promise = Promise.resolve(_inboxThreads);
+      // Don't use the loading promise here, we want to load these in the background.
+      getWeavemailItems().then(async (weaveMailItems) => {
+        await mergeInboxItems(<InboxItem[]>weaveMailItems);
+        if ($keyStore.isLoggedIn) {
+          $keyStore.weaveMailInboxThreads = _inboxThreads;
+          console.log('weavemail items BACKGROUND loaded async');
+        }
+      });
+    }
+  }
 
   const unsubscribe = keyStore.subscribe((store: any) => {
     console.log(`subscribe changed ${isLoggedIn} ${store.isLoggedIn}`);
@@ -96,122 +144,6 @@ import { debug } from "svelte/internal";
   onDestroy(unsubscribe);
 
   /**
-   * Takes a list of InboxItems loaded from arweave and merges them into the
-   * inbox. This is a bit of a misnomer however because in re-writing this
-   * several times, the merging behavior was lost. Now it just replaces the
-   * existing inbox threads.
-   * @param newItems An array of inbox items to bundle into threads
-   */
-  async function mergeInboxItems(
-    newItems: InboxItem[],
-  ) {
-    // Get the most recent timestamp from existing threads
-    let mostRecentTimestamp: number = localStorage.mostRecentTimestamp
-      ? parseInt(localStorage.mostRecentTimestamp, 10)
-      : 0;
-
-    const unreadThreads: Record<string, boolean> = {};
-    for (let i: number = 0; i < _inboxThreads.length; i += 1) {
-      const thread: InboxThread = _inboxThreads[i];
-      if (thread.timestamp > mostRecentTimestamp && thread.isSeen) {
-        mostRecentTimestamp = thread.timestamp;
-      }
-
-      unreadThreads[thread.id] = !thread.isSeen;
-    }
-
-    const inboxThreads: Record<string, InboxItem[]> = {};
-    const threadOwners: Record<string, string> = {};
-    for (let j: number = 0; j < newItems.length; j += 1) {
-      const newItem: InboxItem = newItems[j];
-      if (!inboxThreads[newItem.threadId]) {
-        // Create a new thread for the item if there isn't one already
-        inboxThreads[newItem.threadId] = [newItem];
-        threadOwners[newItem.fromAddress] = newItem.threadId;
-      } else {
-        // Insert the item chronologically into a the existing thread
-        const items: InboxItem[] = inboxThreads[newItem.threadId];
-        let insertIndex: number = 0;
-        if (newItem.timestamp > items[0].timestamp) {
-          insertIndex = items.length - 1;
-          // Naieve loop, change if it becomes a performance bottleneck
-          for (let k: number = 0; k < items.length - 1; k += 1) {
-            const item: InboxItem = items[k];
-            const nextItem: InboxItem = items[k + 1];
-            if (item.timestamp < newItem.timestamp
-              && nextItem.timestamp > newItem.timestamp) {
-              insertIndex = k;
-            }
-          }
-        }
-        items.splice(insertIndex, 0, newItem);
-      }
-    }
-
-    const threads: InboxThread[] = [];
-
-    // Create InboxThread instances from the collection of InboxItem arrays
-    await Promise.all(
-      Object.keys(inboxThreads).map(async (threadId: string, index: number) => {
-        const items: InboxItem[] = inboxThreads[threadId];
-        const newThread: InboxThread = new InboxThread();
-        await newThread.init(items[0]);
-        for (let i: number = 1; i < items.length; i += 1) {
-          newThread.addItem(items[i]);
-        }
-        // Override the last items recent flag so it expands its message body in the thread view
-        newThread.items[newThread.items.length - 1].isRecent = true;
-        threads.push(newThread);
-
-        if (newThread.timestamp > mostRecentTimestamp
-            && mostRecentTimestamp > 0
-        ) {
-          newThread.isSeen = false;
-        }
-
-        if (unreadThreads[newThread.id]) {
-          newThread.isSeen = false;
-        }
-
-        // Brute force logic for controlling the isSeen flag on the welcome item
-        if (welcomeMessage
-            && newThread.items[0].threadId === welcomeMessage.threadId
-            && newThread.items.length === 1) {
-          if (localStorage.getItem('welcomeMessageSeen') !== null) {
-            newThread.isSeen = true;
-          } else {
-            newThread.isSeen = false;
-          }
-        }
-      })
-    ).then(() => {
-      threads.sort((a, b) => {
-        if (a.isSeen !== b.isSeen) {
-          if (a.isSeen === false) {
-            return -1;
-          }
-          return 1;
-        }
-        return b.timestamp - a.timestamp;
-      });
-      _inboxThreads = threads;
-      $keyStore.inboxThreads = _inboxThreads;
-      let isInboxZero: boolean = true;
-
-      // Only set the mostRecentTimestamp if all the messages are read
-      for (let i: number = 0; i < _inboxThreads.length; i += 1) {
-        if (_inboxThreads[i].isSeen === false) {
-          isInboxZero = false;
-          break;
-        }
-      }
-      if (isInboxZero) {
-        localStorage.mostRecentTimestamp = mostRecentTimestamp.toString();
-      }
-    });
-  }
-
-  /**
    * Takes the threadId that's derived from the subject line and combines it
    * with the sender address, then SHA-256 hashs it again to generate a unique
    * but still deterministic thread id. NOTE-This will all have to change when
@@ -232,12 +164,12 @@ import { debug } from "svelte/internal";
     return b64UrlHash;
   }
 
-  /**
+ /**
    * Retrieves the wallet address active for the the app. Handles getting the
    * address from jwk or ArConnect.
    * @param wallet jwk object if used
    */
-  async function getActiveAddress(
+   async function getActiveAddress(
     wallet?: any,
   ): Promise<string> {
     if (wallet !== null) {
@@ -331,7 +263,123 @@ import { debug } from "svelte/internal";
     goto('message/viewThread');
   }
 
-    /**
+  /**
+   * Takes a list of InboxItems loaded from arweave and merges them into the
+   * inbox. This is a bit of a misnomer however because in re-writing this
+   * several times, the merging behavior was lost. Now it just replaces the
+   * existing inbox threads.
+   * @param newItems An array of inbox items to bundle into threads
+   */
+   async function mergeInboxItems(
+    newItems: InboxItem[],
+  ) {
+    // Get the most recent timestamp from existing threads
+    let mostRecentTimestamp: number = localStorage.mostRecentTimestamp
+      ? parseInt(localStorage.mostRecentTimestamp, 10)
+      : 0;
+
+    const unreadThreads: Record<string, boolean> = {};
+    for (let i: number = 0; i < _inboxThreads.length; i += 1) {
+      const thread: InboxThread = _inboxThreads[i];
+      if (thread.timestamp > mostRecentTimestamp && thread.isSeen) {
+        mostRecentTimestamp = thread.timestamp;
+      }
+
+      unreadThreads[thread.id] = !thread.isSeen;
+    }
+
+    const inboxThreads: Record<string, InboxItem[]> = {};
+    const threadOwners: Record<string, string> = {};
+    for (let j: number = 0; j < newItems.length; j += 1) {
+      const newItem: InboxItem = newItems[j];
+      if (!inboxThreads[newItem.threadId]) {
+        // Create a new thread for the item if there isn't one already
+        inboxThreads[newItem.threadId] = [newItem];
+        threadOwners[newItem.fromAddress] = newItem.threadId;
+      } else {
+        // Insert the item chronologically into a the existing thread
+        const items: InboxItem[] = inboxThreads[newItem.threadId];
+        let insertIndex: number = 0;
+        if (newItem.timestamp > items[0].timestamp) {
+          insertIndex = items.length - 1;
+          // Naieve loop, change if it becomes a performance bottleneck
+          for (let k: number = 0; k < items.length - 1; k += 1) {
+            const item: InboxItem = items[k];
+            const nextItem: InboxItem = items[k + 1];
+            if (item.timestamp < newItem.timestamp
+              && nextItem.timestamp > newItem.timestamp) {
+              insertIndex = k;
+            }
+          }
+        }
+        items.splice(insertIndex, 0, newItem);
+      }
+    }
+
+    const threads: InboxThread[] = [];
+
+    // Create InboxThread instances from the collection of InboxItem arrays
+    await Promise.all(
+      Object.keys(inboxThreads).map(async (threadId: string, index: number) => {
+        const items: InboxItem[] = inboxThreads[threadId];
+        const newThread: InboxThread = new InboxThread();
+        await newThread.init(items[0]);
+        for (let i: number = 1; i < items.length; i += 1) {
+          newThread.addItem(items[i]);
+        }
+        // Override the last items recent flag so it expands its message body in the thread view
+        newThread.items[newThread.items.length - 1].isRecent = true;
+        threads.push(newThread);
+
+        if (newThread.timestamp > mostRecentTimestamp
+            && mostRecentTimestamp > 0
+        ) {
+          newThread.isSeen = false;
+        }
+
+        if (unreadThreads[newThread.id]) {
+          newThread.isSeen = false;
+        }
+
+        // Brute force logic for controlling the isSeen flag on the welcome item
+        if (welcomeMessage
+            && newThread.items[0].threadId === welcomeMessage.threadId
+            && newThread.items.length === 1) {
+          if (localStorage.getItem('welcomeMessageSeen') !== null) {
+            newThread.isSeen = true;
+          } else {
+            newThread.isSeen = false;
+          }
+        }
+      }),
+    ).then(() => {
+      threads.sort((a, b) => {
+        if (a.isSeen !== b.isSeen) {
+          if (a.isSeen === false) {
+            return -1;
+          }
+          return 1;
+        }
+        return b.timestamp - a.timestamp;
+      });
+      _inboxThreads = threads;
+      $keyStore.inboxThreads = _inboxThreads;
+      let isInboxZero: boolean = true;
+
+      // Only set the mostRecentTimestamp if all the messages are read
+      for (let i: number = 0; i < _inboxThreads.length; i += 1) {
+        if (_inboxThreads[i].isSeen === false) {
+          isInboxZero = false;
+          break;
+        }
+      }
+      if (isInboxZero) {
+        localStorage.mostRecentTimestamp = mostRecentTimestamp.toString();
+      }
+    });
+  }
+
+  /**
    * Gets a list of weavemail transactions from arweave based on the active
    * wallet address. Then converts them into an array of InboxItems. These get
    * fed into `mergeInboxItems()` where InboxTheads get created for each item
@@ -340,6 +388,39 @@ import { debug } from "svelte/internal";
    */
   async function getWeavemailItems(): Promise<InboxItem[]> {
     const address: string = await getActiveAddress(wallet);
+
+    if (0) {
+      // create fake inbox entries
+
+      const fakeInboxItems: InboxItem[] = [];
+      for (let i: number = 0; i < 10; i += 1) {
+        const fakeInboxItem: InboxItem = {
+          toAddress: address,
+          toName: 'You',
+          fromName: 'Dmac',
+          fromAddress: '9tR0-C1m3_sCWCoVCChg4gFYKdiH5_ZDyZpdJ2DDRw',
+          date: '',
+          subject: `RE: Spam #${i}`,
+          id: 0,
+          threadId: '0',
+          isFlagged: false,
+          isRecent: false,
+          isSeen: true,
+          fee: 0,
+          amount: 0,
+          contentType: 'weavemail',
+          timestamp: i,
+          body: `This is spam ${i}`,
+          txid: '',
+          appVersion: '',
+        };
+        fakeInboxItems.push(fakeInboxItem);
+      }
+      return fakeInboxItems;
+    }
+
+    $keyStore.activeAddress = address;
+
     const json: any = await getWeavemailTransactions(arweave, address);
     console.log(`${json.data.transactions.edges.length} to resolve`);
 
@@ -410,7 +491,7 @@ import { debug } from "svelte/internal";
         // console.log(inboxItem);
 
         return inboxItem;
-      })
+      }),
     );
 
     const result: InboxItem[] = [];
@@ -448,7 +529,7 @@ It's very early and we have big plans to develop this project to have full email
 While we can't change this version of the app we can publish new versions with new features⚡️. If you like the new features you can choose to use that version instead.
 This is the power of apps on the permaweb🐘, you are in control💪.
 </br></br>
-If you like what you see and are curious to learn more, <u>reply to this message</u> and const us know how you found us. We'll send you links to our community where you can learn more about our roadmap and share your on ideas for features you'd like to see.
+If you like what you see and are curious to learn more, <u>reply to this message</u> and let know how you found us. We'll send you links to our community where you can learn more about our roadmap and share your on ideas for features you'd like to see.
 </br></br>
 Thanks for checking out our project 💌
 </br>
@@ -472,55 +553,6 @@ Thanks for checking out our project 💌
    */
   function handleNewMessageClick(): void {
     goto('message/write');
-  }
-
-  /**
-   * Detects logout and logen status and performs inbox item loading. If it's
-   * the first time and there are no cached inbox threads, it uses a promise
-   * to trigger the "Waiting..." text. Otherwise it performs a background
-   * loading operation.
-   */
-  function pageStartupLogic(): void {
-    if ($keyStore.keys !== null) {
-      wallet = JSON.parse($keyStore.keys);
-      console.log(`wallet is ${wallet}`);
-    } else if ($keyStore.isLoggedIn) {
-      wallet = null;
-    } else {
-      console.log('logged out');
-      _inboxThreads = [];
-      return;
-    }
-
-    console.log(`webWaller:`);
-    console.log(webWallet);
-
-    // Make sure we have a wallet initialized
-    console.log('Wallet loaded');
-
-    if (!$keyStore.inboxThreads || $keyStore.inboxThreads.length === 0) {
-      isLoadingMessages = true;
-      console.log('start loading messages');
-      // We don't have any mailItems, use the loading promise to show "Waiting..."
-      promise = getWeavemailItems().then(async (weaveMailItems) => {
-        await mergeInboxItems(weaveMailItems);
-        console.log('weavemail items loaded async at STARTUP');
-        isLoadingMessages = false;
-        $keyStore.weaveMailInboxThreads = _inboxThreads;
-        return _inboxThreads;
-      });
-    } else {
-      _inboxThreads = $keyStore.inboxThreads;
-      promise = Promise.resolve(_inboxThreads);
-      // Don't use the loading promise here, we want to load these in the background.
-      getWeavemailItems().then(async (weaveMailItems) => {
-        await mergeInboxItems(<InboxItem[]>weaveMailItems);
-        if ($keyStore.isLoggedIn) {
-          $keyStore.weaveMailInboxThreads = _inboxThreads;
-          console.log('weavemail items BACKGROUND loaded async');
-        }
-      });
-    }
   }
 
   /**
