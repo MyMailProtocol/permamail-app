@@ -574,15 +574,15 @@ Thanks for checking out our project 💌
         {#each _inboxThreads as item, i}
           {#if i === 0 && !item.isSeen}
             <article>
-              <div class="unseen"><span>NEW FOR YOU</span></div>
+              <div class="unseen" id="new"><span>NEW FOR YOU</span></div>
             </article>
           {/if}
           {#if gatewayUrl !== undefined && item.isSeen && (i === 0 || !_inboxThreads[i - 1].isSeen)}
-            <article><div class="previous">PREVIOUSLY SEEN</div></article>
+            <article><div class="previous" id="previous">PREVIOUSLY SEEN</div></article>
           {/if}
           <article>
             <div
-              class="inboxItem"
+              class="inboxItem" id="inboxItem"
               on:click={() => handleInboxThreadClick(item)}
               class:seen={item.isSeen}
             >
