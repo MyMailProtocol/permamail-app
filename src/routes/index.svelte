@@ -19,6 +19,7 @@
   import type { InboxItem } from "$lib/myMail";
   import { bufferTob64 } from "$lib/myMail";
   import config from "$lib/arweaveConfig";
+import { debug } from "svelte/internal";
 
   // Used for testing a cold start
   // $keyStore.keys = null;
@@ -262,6 +263,7 @@
     let data = await arweave.transactions.getData(txid);
     if (wallet != null) {
       let key = await getPrivateKey(wallet);
+      console.log(txid);
       let decryptString = await arweave.utils.bufferToString(
         await decryptMail(arweave, arweave.utils.b64UrlToBuffer(data), key)
       );
@@ -274,13 +276,12 @@
       const mailBytes = new Uint8Array(encryptedData.slice(512));
 
       // Decrypt the symmetric key from the first part
-      let keyString = arweave.utils.bufferTob64(symmetricKeyBytes);
-      const symmetricKey = await webWallet.decrypt(keyString, { name: 'RSA-OAEP' } );
-      let keyBuffer = new arweave.utils.b64UrlToBuffer(symmetricKey);
+      const symmetricKey = await webWallet.decrypt(symmetricKeyBytes, { name: 'RSA-OAEP' } );
 
       // Use the symmetric key to decrypt the mail from the last part
-      let decryptString = await arweave.crypto.decrypt(mailBytes, keyBuffer);
-      console.log(`decryptString: ${decryptString}`);
+      let decryptString = arweave.utils.bufferToString(
+        await arweave.crypto.decrypt(mailBytes, symmetricKey)
+      );
       let mailParse = JSON.parse(decryptString);
       return mailParse;
     } else {
