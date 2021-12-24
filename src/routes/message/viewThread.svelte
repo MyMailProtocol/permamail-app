@@ -73,7 +73,7 @@
   import { onMount } from 'svelte';
   import { submitWeavemail, InboxThread } from '$lib/myMail';
   import { getFormattedDate } from '$lib/formattedTime';
-  import { scrollToBottom } from '$lib/scrollTo/svelteScrollTo';
+  import { /* scrollToBottom, */ scrolltobottom } from '$lib/scrollTo/svelteScrollTo';
   import { sineInOut } from 'svelte/easing';
   import SubmitRow from '/src/components/SubmitRow.svelte';
   import ComposeRow from '/src/components/ComposeRow.svelte';
@@ -206,7 +206,8 @@ border-inline-start: 1px solid rgba( 27, 39, 51, 0.15);">${
       const container: HTMLElement = document.getElementById('replyContainer');
       console.log(`container: ${container.clientHeight}`);
       options.offset = -innerHeight - (container.clientHeight - 440);
-      scrollToBottom(options);
+      scrolltobottom(container, options);
+      // scrollToBottom(options);
     }, 0);
   }
 

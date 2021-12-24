@@ -1,8 +1,41 @@
 import { cubicOut } from 'svelte/easing';
 import { noop, loop, now } from 'svelte/internal';
-import helper from './helper';
+import helper from './helper.ts';
 
-const defaultOptions = {
+interface XY {
+  x: number,
+  y: number,
+}
+
+interface ElementXYCallback {
+  (element: HTMLElement, position: XY): void;
+}
+
+interface NumberCallback {
+  (): number;
+}
+
+interface EasingCallback {
+  (t: number): number;
+}
+
+interface ScrollToOptions {
+  container?: string,
+  duration?: number,
+  delay?: number,
+  offset?: number|NumberCallback,
+  easing?: EasingCallback,
+  onStart?: ElementXYCallback,
+  onDone?: ElementXYCallback,
+  onAborting?: ElementXYCallback,
+  scrollX?: boolean,
+  scrollY?: boolean,
+  element?: HTMLElement,
+  x?: number,
+  y?: number,
+}
+
+const defaultOptions: ScrollToOptions = {
   container: 'body',
   duration: 500,
   delay: 0,
@@ -15,7 +48,7 @@ const defaultOptions = {
   scrollY: true,
 };
 
-const abortEvents = [
+const abortEvents: string[] = [
   'mousedown',
   'wheel',
   'DOMMouseScroll',
@@ -24,7 +57,7 @@ const abortEvents = [
   'touchmove',
 ];
 
-const _scrollTo = (options) => {
+const scrollToInternal = (options: ScrollToOptions) => {
   const {
     duration,
     delay,
@@ -53,35 +86,41 @@ const _scrollTo = (options) => {
     ? helper.cumulativeOffset(element)
     : { top: y, left: x };
 
-  const initialX = helper.scrollLeft(container);
-  const initialY = helper.scrollTop(container);
+  const initialX: number = helper.scrollLeft(container);
+  const initialY: number = helper.scrollTop(container);
 
-  const targetX = cumulativeOffsetTarget.left - cumulativeOffsetContainer.left + offset;
-  const targetY = cumulativeOffsetTarget.top - cumulativeOffsetContainer.top + offset;
+  const targetX: number = cumulativeOffsetTarget.left - cumulativeOffsetContainer.left + offset;
+  const targetY: number = cumulativeOffsetTarget.top - cumulativeOffsetContainer.top + offset;
 
-  const diffX = targetX - initialX;
-  const diffY = targetY - initialY;
+  const diffX: number = targetX - initialX;
+  const diffY: number = targetY - initialY;
 
   let scrolling = true;
   let started = false;
-  const startTime = now() + delay;
-  const endTime = startTime + duration;
+  const startTime: number = now() + delay;
+  const endTime: number = startTime + duration;
 
-  function scrollToTopLeft(element, top, left) {
+  function scrollToTopLeft(
+    elem: HTMLElement,
+    top: number,
+    left: number,
+  ): void {
     if (scrollX) {
-      helper.scrollLeft(element, left);
+      helper.scrollLeft(elem, left);
     }
     if (scrollY) {
-      helper.scrollTop(element, top);
+      helper.scrollTop(elem, top);
     }
   }
 
-  function stop() {
+  function stop(): void {
     scrolling = false;
     helper.removeListeners(container, abortEvents, stop);
   }
 
-  function start(delayStart) {
+  function start(
+    delayStart: number,
+  ): void {
     if (!delayStart) {
       started = true;
       onStart(element, { x, y });
@@ -89,7 +128,7 @@ const _scrollTo = (options) => {
     helper.addListeners(container, abortEvents, stop, { passive: true });
   }
 
-  function tick(progress) {
+  function tick(progress: number) {
     scrollToTopLeft(
       container,
       initialY + diffY * progress,
@@ -99,7 +138,7 @@ const _scrollTo = (options) => {
 
   loop((time) => {
     if (!started && time >= startTime) {
-      start(false);
+      start(0);
     }
 
     if (started && time >= endTime) {
@@ -113,9 +152,10 @@ const _scrollTo = (options) => {
       onAborting(element, { x, y });
       return false;
     }
+
     if (started) {
-      const p = time - startTime;
-      const t = 0 + 1 * easing(p / duration);
+      const p: number = time - startTime;
+      const t: number = 0 + 1 * easing(p / duration);
       tick(t);
     }
 
@@ -129,14 +169,14 @@ const _scrollTo = (options) => {
   return stop;
 };
 
-const proceedOptions = (options) => {
-  const opts = helper.extend({}, defaultOptions, options);
+const proceedOptions = (options: ScrollToOptions) => {
+  const opts: ScrollToOptions = helper.extend({}, defaultOptions, options);
   opts.container = helper.$(opts.container);
   opts.element = helper.$(opts.element);
   return opts;
 };
 
-const scrollContainerHeight = (containerElement) => {
+const scrollContainerHeight = (containerElement: HTMLElement|Document) => {
   if (containerElement
     && containerElement !== document
     && containerElement !== document.body) {
@@ -154,16 +194,16 @@ const scrollContainerHeight = (containerElement) => {
   );
 };
 
-export const setGlobalOptions = (options) => {
+export const setGlobalOptions = (options: ScrollToOptions) => {
   helper.extend(defaultOptions, options || {});
 };
 
-export const scrollTo = (options) => _scrollTo(proceedOptions(options));
+const scrollTo = (options: ScrollToOptions) => scrollToInternal(proceedOptions(options));
 
-export const scrollToBottom = (options) => {
+export const scrollToBottom = (options: ScrollToOptions) => {
   options = proceedOptions(options);
 
-  return _scrollTo(
+  return scrollToInternal(
     helper.extend(options, {
       element: null,
       y: scrollContainerHeight(options.container),
@@ -171,10 +211,10 @@ export const scrollToBottom = (options) => {
   );
 };
 
-export const scrollToTop = (options) => {
+const scrollToTop = (options: ScrollToOptions) => {
   options = proceedOptions(options);
 
-  return _scrollTo(
+  return scrollToInternal(
     helper.extend(options, {
       element: null,
       y: 0,
@@ -182,18 +222,22 @@ export const scrollToTop = (options) => {
   );
 };
 
-export const makeScrollToAction = (scrollToFunc) => (node, options) => {
-  let current = options;
-  const handle = (e) => {
+const makeScrollToAction = (scrollToFunc) => (node: Node, options: ScrollToOptions) => {
+  let current: ScrollToOptions = options;
+  const handle: EventListener = (e: Event) => {
     e.preventDefault();
     scrollToFunc(
       typeof current === 'string' ? { element: current } : current,
     );
   };
+
   helper.addListeners(node, ['click', 'touchstart'], handle);
+
   return {
-    update(options) {
-      current = options;
+    update(
+      updateOptions: ScrollToOptions,
+    ) {
+      current = updateOptions;
     },
     destroy() {
       helper.removeListeners(node, ['click', 'touchstart'], handle);
