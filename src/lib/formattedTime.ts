@@ -1,28 +1,21 @@
 const ONE_DAY: number = 1000 * 60 * 60 * 24;
 
-function getDayOfYear(date: Date): number {
-  const start: Date = new Date(date.getFullYear(), 0, 0);
-  const diff: number = (+date - +start) + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
-  const day: number = Math.floor(diff / ONE_DAY);
-  return day;
-}
-
-const monthsShort: string[] = [
-  "Jan", 
-  "Feb", 
-  "Mar", 
-  "Apr", 
-  "May", 
-  "Jun", 
-  "Jul", 
-  "Aug", 
-  "Sep", 
-  "Oct", 
-  "Nov", 
-  "Dec"
+const MONTHS_SHORT: string[] = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
-const months: string[] = [
+const MONTHS: string[] = [
   'January',
   'February',
   'March',
@@ -34,13 +27,21 @@ const months: string[] = [
   'September',
   'October',
   'November',
-  'December'
+  'December',
 ];
+
+function getDayOfYear(date: Date): number {
+  const start: Date = new Date(date.getFullYear(), 0, 0);
+  const diff: number = (+date - +start)
+    + ((start.getTimezoneOffset() - date.getTimezoneOffset()) * 60 * 1000);
+  const day: number = Math.floor(diff / ONE_DAY);
+  return day;
+}
 
 export function getFormattedTime(
   timestamp: number,
 ): string {
-  let date: Date = new Date();
+  const date: Date = new Date();
   date.setTime(timestamp);
 
   const d1: number = getDayOfYear(date);
@@ -51,24 +52,22 @@ export function getFormattedTime(
     if (hours > 12) {
       return `${hours - 12}:${date.getMinutes().toLocaleString('en-US', {
         minimumIntegerDigits: 2,
-        useGrouping: false
+        useGrouping: false,
       })}pm`;
-    } else {
-      return `${hours}:${date.getMinutes().toLocaleString('en-US', {
-        minimumIntegerDigits: 2,
-        useGrouping: false
-      })}am`;
     }
-  } else {
-    return `${monthsShort[date.getMonth()]} ${date.getDate()}`;
+    return `${hours}:${date.getMinutes().toLocaleString('en-US', {
+      minimumIntegerDigits: 2,
+      useGrouping: false,
+    })}am`;
   }
+  return `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()}`;
 }
 
 export function getExpireLabel(
-  timestamp: number, 
+  timestamp: number,
   days: number,
 ): string {
-  let sentDate: Date = new Date();
+  const sentDate: Date = new Date();
   sentDate.setTime(timestamp);
 
   const sentDayOfYear: number = getDayOfYear(sentDate);
@@ -81,7 +80,8 @@ export function getExpireLabel(
 export function getFormattedDate(
   timestamp: number,
 ): string {
-  let date: Date = new Date();
+  const date: Date = new Date();
   date.setTime(timestamp);
-  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
