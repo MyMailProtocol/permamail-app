@@ -163,6 +163,9 @@
   }
 
   function abbreviateAddress(address:string): string {
+    if (!address)
+      return "xxxxx...xxx";
+    
     const firstFive = address.substring(0,5);
     const lastFour = address.substring(address.length-4);
     return `${firstFive}...${lastFour }`;
