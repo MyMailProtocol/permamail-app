@@ -1,13 +1,19 @@
 let supportsPassive = false;
 try {
   const opts = Object.defineProperty({}, 'passive', {
-    get: function () {
+    get: () => {
       supportsPassive = true;
+      return true;
     },
   });
   window.addEventListener('test', null, opts);
 } catch (e) {
   // ignore
+}
+
+interface CumulativeOffsetResult {
+  top: number,
+  left: number,
 }
 
 export default {
@@ -22,33 +28,37 @@ export default {
     return Object.assign(...args);
   },
   addListeners(
-    element,
-    events,
-    handler,
+    element: HTMLElement,
+    events: string|string[],
+    handler: EventListener,
     opts = { passive: false },
-  ) {
+  ): void {
     if (!(events instanceof Array)) {
       events = [events];
     }
-    for (let i = 0; i < events.length; i += 1) {
+    events.forEach((event: string) => {
       element.addEventListener(
-        events[i],
+        event,
         handler,
         supportsPassive ? opts : false,
       );
-    }
+    });
   },
-  removeListeners(element, events, handler) {
+  removeListeners(
+    element: HTMLElement,
+    events: string|string[],
+    handler: EventListener,
+  ): void {
     if (!(events instanceof Array)) {
       events = [events];
     }
-    for (let i = 0; i < events.length; i += 1) {
-      element.removeEventListener(events[i], handler);
-    }
+    events.forEach((event: string) => {
+      element.removeEventListener(event, handler);
+    });
   },
   cumulativeOffset(
-    element,
-  ) {
+    element: HTMLElement,
+  ): CumulativeOffsetResult {
     let top = 0;
     let left = 0;
 
@@ -64,19 +74,18 @@ export default {
     };
   },
   directScroll(
-    element,
-  ) {
+    element: HTMLElement|Document,
+  ): boolean {
     return element && element !== document && element !== document.body;
   },
   scrollTop(
-    element,
-    value,
-  ) {
-    const inSetter = (value !== undefined);
+    element: HTMLElement,
+    value?: number,
+  ): number {
+    const inSetter: boolean = (value !== undefined);
     if (this.directScroll(element)) {
       if (inSetter) {
         element.scrollTop = value;
-        return value;
       }
       return element.scrollTop;
     }
@@ -92,10 +101,10 @@ export default {
       || 0;
   },
   scrollLeft(
-    element,
-    value,
-  ) {
-    const inSetter = (value !== undefined);
+    element: HTMLElement,
+    value?: number,
+  ): number {
+    const inSetter: boolean = (value !== undefined);
     if (this.directScroll(element)) {
       if (inSetter) {
         element.scrollLeft = value;

@@ -161,6 +161,15 @@
 
     console.log(decryptedResult);
   }
+
+  function abbreviateAddress(address:string): string {
+    if (!address)
+      return "xxxxx...xxx";
+    
+    const firstFive = address.substring(0,5);
+    const lastFour = address.substring(address.length-4);
+    return `${firstFive}...${lastFour }`;
+  }
 </script>
 
 <header>
@@ -170,7 +179,7 @@
       {#if $page.path === '/'}
         {#if isNewVersion}
           {#if isNewVersionSkipped}
-            <div class = "upgradeFrame minmized" on:click={unskipLatet}>Update</div>
+            <div class = "upgradeFrame minamized" on:click={unskipLatet}>Update</div>
           {:else}
             <div class="upgradeFrame"><div class="updateLabel">Update Available</div><div class="updateButton" on:click={navigateToLatest} >Update</div> <div on:click={skipLatest} class="skipText">Skip</div></div>
           {/if}
@@ -187,20 +196,20 @@
     </div>
 
   {#if keys !== null || $keyStore.isLoggedIn}
-    <div class="corner right">
-      <button on:click={openAvatarPopup}>
-        <div alt="ProfileImage" class="downArrow"></div>
-        <div alt="ProfileImage" class="profileImage">
+    <div class="corner right minamized" on:click={openAvatarPopup}>
+      <button class="minamized">
+        <div alt="ProfileImage" class="downArrow minamized"></div>
+        <div alt="ProfileImage" class="profileImage minamized">
       </button>
-      <div class="truncate address" on:click={viewAddress}>
-        {$keyStore.activeAddress}
+      <div class="address">
+        {abbreviateAddress($keyStore.activeAddress)}
       </div>
     </div>
   {/if}
   <!-- Avatar pooup -->
   <Modal bind:isOpen={isOpenAvatarPopup}>
     <div slot="header">
-      <div class="truncate" on:click={viewAddress}>MENU - {$keyStore.activeAddress}</div>
+      <div>MENU <!--<div on:click={viewAddress} style="font-size: var(--font-size-xx-small);">{$keyStore.activeAddress}</div>--></div>
     </div>
     <div slot="content">
       <!-- <ModalItem imageUrl="{$page.path === '/' ? '' : '../'}gateway.svg" onClick={authenticateWithGateway}>
@@ -273,7 +282,7 @@
     color: var(--color-secondary);
   }
 
-  .minmized {
+  .minamized {
     cursor: pointer;
   }
 
@@ -373,8 +382,8 @@
   }
 
   .address {
-    font-size: var(--font-size-small);
-    margin-right: 0.5rem;
+    font-size: var(--font-size-x-small);
+    margin-right: 1.5rem;
     margin-left: 0.5rem;
   }
 
@@ -442,7 +451,6 @@
   } */
 
   .corner {
-    width: 20%;
     height: 3em;
     display: flex;
     align-items: center;
