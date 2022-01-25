@@ -15,6 +15,9 @@ export class MyMailWebWallet extends ArweaveWebWallet {
 
 let webWallet: MyMailWebWallet;
 
+// This window check prevents vite from trhing to execute this client code for 
+// SSR when operating in `npm run dev` mode locally.
+// TODO: pull this out into a svelte component so vite doesn't try to SSR it.
 if (typeof window != 'undefined') {
   webWallet = new MyMailWebWallet({
     name: 'Weavemail',
