@@ -13,9 +13,14 @@ export class MyMailWebWallet extends ArweaveWebWallet {
   }
 }
 
-const webWallet = new MyMailWebWallet({
-  name: 'Weavemail',
-  logo: 'https://jfbeats.github.io/ArweaveWalletConnector/placeholder.svg',
-}, 'arweave.app');
+let webWallet: MyMailWebWallet;
+
+if (typeof window != 'undefined') {
+  webWallet = new MyMailWebWallet({
+    name: 'Weavemail',
+    logo: 'https://jfbeats.github.io/ArweaveWalletConnector/placeholder.svg',
+  }, 'arweave.app');
+}
 
 export default webWallet;
+
