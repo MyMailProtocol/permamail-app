@@ -31,7 +31,7 @@
     "@fontsource/fira-mono": "^4.2.2",
     "@lukeed/uuid": "^2.0.0",
     "arweave": "^1.10.11",
-    "arweave-wallet-connector": "^0.0.19",
+    "arweave-wallet-connector": "^0.0.22",
     "base64-js": "^1.5.1",
     "cookie": "^0.4.1",
     "svelte-local-storage-store": "^0.2.4",
