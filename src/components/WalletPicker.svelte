@@ -1,13 +1,16 @@
 <script lang="ts">
-  import { keyStore } from '$lib/keyStore';
-  import { createEventDispatcher } from 'svelte';
+  import { keyStore } from "$lib/keyStore";
+  import { createEventDispatcher } from "svelte";
+  import webWallet from '$lib/webWallet';
 
   const dispatch = createEventDispatcher();
-  const onLoggedIn = () => { dispatch('login'); };
+  const onLoggedIn = () => {
+    dispatch("login");
+  };
 
   function onChangedHandler(event: Event) {
-    const jwk: File = (<HTMLInputElement>event.target).files[0];
-    const reader: FileReader = new FileReader();
+    let jwk = (<HTMLInputElement>event.target).files[0];
+    let reader = new FileReader();
     reader.readAsText(jwk);
     reader.onload = () => {
       $keyStore.keys = reader.result.toString();
@@ -25,22 +28,28 @@
     ]);
     onLoggedIn();
   }
+
+  async function onArweaveAppLogin() {
+   
+    console.log(`address is: ${webWallet.address}`);
+    console.log(webWallet);
+    if (webWallet.address === undefined) {
+      var msg = await webWallet.connect();
+      console.log(`msg is: ${msg}`);
+    }
+    onLoggedIn();
+  }
 </script>
 
 <section>
   <div class="file-input">
-    <input
-      type="file"
-      id="file"
-      on:change={(e) => onChangedHandler(e)}
-    />
+    <input type="file" id="file" on:change={(e) => onChangedHandler(e)} />
     <div id="desc">Drop a keyfile to login.</div>
   </div>
-  <div class="or-block">
-    or use
-  </div>
-  <button on:click={onARConnectLogin} class="arconnect">
-    ArConnect to login
+  <div class="or-block">or login with a wallet</div>
+  <button on:click={onARConnectLogin} class="walletButton"> ArConnect </button>
+  <button on:click={onArweaveAppLogin} class="walletButton">
+    Arweave.app
   </button>
 </section>
 
@@ -84,10 +93,10 @@
     position: relative;
     margin: auto;
     max-width: 300px;
-    height:50px;
+    height: 50px;
   }
 
-  .arconnect {
+  .walletButton {
     background-color: transparent;
     height: 50px;
     border-radius: 5px;
@@ -98,13 +107,14 @@
     justify-content: center;
     position: relative;
     margin: auto;
+    margin-bottom: 1rem;
     width: 300px;
     max-width: 300px;
     font-size: var(--font-size-medium);
     color: var(--color-text);
   }
 
-  .arconnect:hover {
+  .walletButton:hover {
     background-color: var(--color-bg--sheet);
     cursor: pointer;
   }

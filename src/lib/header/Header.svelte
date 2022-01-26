@@ -245,10 +245,9 @@
     align-items: center;
     justify-content: center;
     background: var(--rgb-background);
-    height:3em;
+    height:3.3em;
     color: var(--color-text);
     font-size: var(--font-size-medium);
-
     --color-bg--surface-glint: rgba(var(--rgb-gray), 0.1);
   }
 
@@ -368,11 +367,12 @@
   }
 
   .right {
-    padding: 0.33em;
+    padding: 0.23em;
     right: 1em;
     flex-direction: row-reverse;
     border-radius: 1rem;
     background-color: var(--color-bg--sheet);
+    margin-top: -0.3em;
   }
 
   .truncate {

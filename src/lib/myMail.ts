@@ -147,6 +147,7 @@ export async function decryptMail(
     privateKey,
     symmetricKeyBytes,
   );
+  console.log(symmetricKey);
 
   // Use the symmetric key to decrypt the mail from the last part
   return arweave.crypto.decrypt(mailBytes, symmetricKey);
